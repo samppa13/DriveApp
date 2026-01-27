@@ -1,0 +1,25 @@
+import dotenv from 'dotenv'
+import express, { Express } from 'express'
+import cors, { CorsOptions } from 'cors'
+import connectDB from './src/config/db'
+import userRouter from './src/routes/user'
+
+dotenv.config()
+connectDB()
+
+const app: Express = express()
+const port: number = 9000
+
+const corsOptions: CorsOptions = {
+    origin: 'http://localhost:5173',
+    optionsSuccessStatus: 200
+}
+
+app.use(cors(corsOptions))
+app.use(express.json())
+app.use(express.urlencoded({ extended: false }))
+app.use('/api/users', userRouter)
+
+app.listen(port, () => {
+    console.log(`Server running on port ${port}`)
+})
