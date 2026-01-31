@@ -7,7 +7,7 @@ const Header = () => {
     const auth = useContext(AuthContext)
 
     const handleLogout = () => {
-        auth?.logout()
+        auth.logout()
         navigate('/')
     }
 

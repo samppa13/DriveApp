@@ -1,12 +1,32 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { AuthContext } from '../context/AuthContext'
 
 const RegisterPage = () => {
     const [username, setUsername] = useState<string>('')
     const [password, setPassword] = useState<string>('')
     const [message, setMessage] = useState<string>('')
 
+    const auth = useContext(AuthContext)
     const navigate = useNavigate()
+
+    if (auth.loading) {
+        return <p>Loading...</p>
+    }
+
+    if (auth.user) {
+        return (
+            <div>
+                <p>You are logged in as {auth.user.username}, you must log out before you can register a new user.</p>
+                <button onClick={() => navigate('/')}>
+                    Cancel
+                </button>
+                <button onClick={() => auth.logout()}>
+                    Logout
+                </button>
+            </div>
+        )
+    }
 
     const handleRegister = async (event: React.FormEvent) => {
         event.preventDefault()
@@ -24,12 +44,11 @@ const RegisterPage = () => {
             })
 
             const data = await response.json()
-            console.log(data)
             if (!response.ok) {
                 throw new Error(data.error || 'Registration failed')
             }
 
-            setMessage('Registration completed')
+            setMessage(data.message)
             setTimeout(() => {
                 navigate('/login')
             }, 2000)
@@ -45,7 +64,7 @@ const RegisterPage = () => {
             </h1>
             {
                 message
-                && <p style={{ color: message === 'Registration completed' ? 'green' : 'red' }}>{message}</p>
+                && <p style={{ color: message === 'User registered successfully' ? 'green' : 'red' }}>{message}</p>
             }
             <form onSubmit={handleRegister}>
                 <div>

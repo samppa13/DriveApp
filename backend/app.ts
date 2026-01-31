@@ -3,6 +3,7 @@ import express, { Express } from 'express'
 import cors, { CorsOptions } from 'cors'
 import connectDB from './src/config/db'
 import userRouter from './src/routes/user'
+import textDocumentRouter from './src/routes/textdocument'
 
 dotenv.config()
 connectDB()
@@ -19,6 +20,7 @@ app.use(cors(corsOptions))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 app.use('/api/users', userRouter)
+app.use('/api/textdocuments', textDocumentRouter)
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`)

@@ -1,26 +1,16 @@
-import { useContext, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useContext } from 'react'
 import { AuthContext } from '../context/AuthContext'
+import MyDrive from '../components/MyDrive'
 
 const HomePage = () => {
     const auth = useContext(AuthContext)
-    const navigate = useNavigate()
-
-    useEffect(() => {
-        if (!auth?.user) {
-            navigate('/login')
-        }
-    }, [auth?.user, navigate])
-
-    if (!auth?.user) {
-        return null
-    }
 
     return (
         <div>
             <p>
-                Username: {auth.user.username}, Id: {auth.user.id}
+                Username: {auth.user!.username}, Id: {auth.user!.id}
             </p>
+            <MyDrive />
         </div>
     )
 }

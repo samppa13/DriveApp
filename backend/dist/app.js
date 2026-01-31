@@ -8,6 +8,7 @@ const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const db_1 = __importDefault(require("./src/config/db"));
 const user_1 = __importDefault(require("./src/routes/user"));
+const textdocument_1 = __importDefault(require("./src/routes/textdocument"));
 dotenv_1.default.config();
 (0, db_1.default)();
 const app = (0, express_1.default)();
@@ -20,6 +21,7 @@ app.use((0, cors_1.default)(corsOptions));
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: false }));
 app.use('/api/users', user_1.default);
+app.use('/api/textdocuments', textdocument_1.default);
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });

@@ -10,17 +10,33 @@ const LoginPage = () => {
     const auth = useContext(AuthContext)
     const navigate = useNavigate()
 
+    if (auth.loading) {
+        return <p>Loading...</p>
+    }
+
+    if (auth.user) {
+        return (
+            <div>
+                <p>You are logged in as {auth.user.username}, you must log out before you can log in as another user.</p>
+                <button onClick={() => navigate('/')}>
+                    Cancel
+                </button>
+                <button onClick={() => auth.logout()}>
+                    Logout
+                </button>
+            </div>
+        )
+    }
+
     const handleLogin = async (event: React.FormEvent) => {
         event.preventDefault()
         setMessage('')
 
-        if (auth) {
-            try {
-                await auth.login(username, password)
-                navigate('/')
-            } catch (error: any) {
-                setMessage(error.message)
-            }
+        try {
+            await auth.login(username, password)
+            navigate('/')
+        } catch (error: any) {
+            setMessage(error.message)
         }
     }
 
