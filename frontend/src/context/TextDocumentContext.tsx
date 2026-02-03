@@ -3,25 +3,29 @@ import { AuthContext } from './AuthContext'
 import type { ITextDocument } from '../types/types'
 
 interface TextDocumentContextSettings {
-    textDocuments: ITextDocument[]
+    ownedTextDocuments: ITextDocument[]
     loading: boolean
     error: string
+    sharedTextDocuments: ITextDocument[]
     createTextDocument: (textDocument: ITextDocument) => Promise<ITextDocument>
     updateTextDocument: (textDocument: ITextDocument) => Promise<ITextDocument>
     deleteTextDocument: (id: string) => Promise<string>
+    shareTextDocument: (docId: string, userId: string) => Promise<string>
 }
 
 export const TextDocumentContext = createContext<TextDocumentContextSettings | undefined>(undefined)
 
 export const TextDocumentProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [textDocuments, setTextDocuments] = useState<ITextDocument[]>([])
+    const [ownedTextDocuments, setOwnedTextDocuments] = useState<ITextDocument[]>([])
     const [loading, setLoading] = useState<boolean>(true)
     const [error, setError] = useState<string>('')
+    const [sharedTextDocuments, setSharedTextDocuments] = useState<ITextDocument[]>([])
 
     const auth = useContext(AuthContext)
 
     useEffect(() => {
         if (!auth.token) {
+            setLoading(false)
             return
         }
         const abortctrl: AbortController = new AbortController()
@@ -41,7 +45,9 @@ export const TextDocumentProvider: React.FC<{ children: ReactNode }> = ({ childr
                     throw new Error(data.error || 'Error fetching text documents')
                 }
 
-                setTextDocuments(data)
+                setError('')
+                setOwnedTextDocuments(data.ownedTextDocs)
+                setSharedTextDocuments(data.sharedTextDocs)
                 setLoading(false)
             } catch (error: unknown) {
                 if (error instanceof Error) {
@@ -75,7 +81,7 @@ export const TextDocumentProvider: React.FC<{ children: ReactNode }> = ({ childr
             throw new Error(data.error || 'Error creating text document')
         }
 
-        setTextDocuments((prevDocs) => [...prevDocs, data])
+        setOwnedTextDocuments((prevDocs) => [...prevDocs, data])
         return data
     }
 
@@ -94,7 +100,10 @@ export const TextDocumentProvider: React.FC<{ children: ReactNode }> = ({ childr
             throw new Error(data.error || 'Error updating text document')
         }
 
-        setTextDocuments((prevDocs) => prevDocs.map(
+        setOwnedTextDocuments((prevDocs) => prevDocs.map(
+            (textDoc) => textDoc._id === data._id ? data : textDoc
+        ))
+        setSharedTextDocuments((prevDocs) => prevDocs.map(
             (textDoc) => textDoc._id === data._id ? data : textDoc
         ))
         return data
@@ -113,20 +122,40 @@ export const TextDocumentProvider: React.FC<{ children: ReactNode }> = ({ childr
             throw new Error(data.error || 'Error deleting text document')
         }
 
-        setTextDocuments((prevDocs) => prevDocs.filter(
+        setOwnedTextDocuments((prevDocs) => prevDocs.filter(
             (textDoc) => textDoc._id !== id
         ))
         return data.message
     }
 
+    const shareTextDocument = async (docId: string, userId: string) => {
+        const response: Response = await fetch(`http://localhost:9000/api/textdocuments/${docId}/permissions`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${auth.token}`
+            },
+            body: JSON.stringify({ userId })
+        })
+
+        const data = await response.json()
+        if (!response.ok) {
+            throw new Error(data.error || 'Error updating permissions')
+        }
+
+        return data.message
+    }
+
     return (
         <TextDocumentContext.Provider value={{
-            textDocuments,
+            ownedTextDocuments,
             loading,
             error,
+            sharedTextDocuments,
             createTextDocument,
             updateTextDocument,
-            deleteTextDocument
+            deleteTextDocument,
+            shareTextDocument
         }}>
             { children }
         </TextDocumentContext.Provider>

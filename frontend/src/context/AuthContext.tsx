@@ -1,9 +1,5 @@
 import React, { createContext, useEffect, useState, type ReactNode } from 'react'
-
-interface IUser {
-    id: string
-    username: string
-}
+import type { IUser } from '../types/types'
 
 interface AuthContextSettings {
     user: IUser | null
@@ -40,7 +36,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         try {
             const decoded = JSON.parse(atob(storedToken.split('.')[1]))
             setToken(storedToken)
-            setUser({ id: decoded.id, username: decoded.username })
+            setUser({ _id: decoded.id, username: decoded.username })
         } catch (error) {
             localStorage.removeItem('token')
         } finally {
@@ -70,7 +66,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         
         try {
             const decoded = JSON.parse(atob(data.token.split('.')[1]))
-            setUser({ id: decoded.id, username: decoded.username })
+            setUser({ _id: decoded.id, username: decoded.username })
         } catch (error) {
             throw new Error('Invalid token')
         }

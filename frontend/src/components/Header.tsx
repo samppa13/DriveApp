@@ -22,6 +22,16 @@ const Header = () => {
                                     Logout
                                 </button>
                             </li>
+                            <li>
+                                <Link to='/'>
+                                    Own Drive
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to='/shared-with-me'>
+                                    Shared with me
+                                </Link>
+                            </li>
                         </>
                     )
                     : (

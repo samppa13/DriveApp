@@ -7,6 +7,7 @@ const express_1 = require("express");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const User_1 = require("../models/User");
+const auth_1 = require("../middleware/auth");
 const router = (0, express_1.Router)();
 router.post('/register', async (request, response) => {
     try {
@@ -53,6 +54,15 @@ router.post('/login', async (request, response) => {
     }
     catch (error) {
         response.status(500).json({ error: 'Error logging in' });
+    }
+});
+router.get('/', auth_1.verifyToken, async (request, response) => {
+    try {
+        const users = await User_1.User.find().select('-password');
+        return response.status(200).json(users);
+    }
+    catch (error) {
+        response.status(500).json({ error: 'Error while fetching users' });
     }
 });
 exports.default = router;

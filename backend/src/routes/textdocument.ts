@@ -2,6 +2,7 @@ import { Request, Response, Router } from 'express'
 import { JwtPayload } from 'jsonwebtoken'
 import { verifyToken } from '../middleware/auth'
 import { ITextDocument, TextDocument } from '../models/TextDocument'
+import { IUser, User } from '../models/User'
 
 const router: Router = Router()
 
@@ -11,8 +12,17 @@ interface AuthRequest extends Request {
 
 router.get('/', verifyToken, async (request: AuthRequest, response: Response) => {
     try {
-        const textDocuments = await TextDocument.find({ user: request.user?.id })
-        response.status(200).json(textDocuments)
+        const ownedTextDocs: ITextDocument[] = await TextDocument.find({
+            user: request.user?.id
+        })
+        const sharedTextDocs: ITextDocument[] = await TextDocument.find({
+            permissions: request.user?.id
+        }).populate('user', 'id username')
+
+        response.status(200).json({
+            ownedTextDocs,
+            sharedTextDocs
+        })
     } catch (error) {
         response.status(500).json({ error: 'Error fetching text documents'})
     }
@@ -47,7 +57,13 @@ router.put('/:id', verifyToken, async (request: AuthRequest, response: Response)
         }
 
         const updatedTextDocument: ITextDocument | null = await TextDocument.findOneAndUpdate(
-            { _id: request.params.id, user: request.user?.id },
+            {
+                _id: request.params.id,
+                $or: [
+                    { user: request.user?.id },
+                    { permissions: request.user?.id }
+                ]
+            },
             { name: name, text: text },
             { new: true }
         )
@@ -76,6 +92,44 @@ router.delete('/:id', verifyToken, async (request: AuthRequest, response: Respon
         response.status(200).json({ message: 'Text document deleted successfully' })
     } catch (error) {
         response.status(500).json({ error: 'Error deleting text document' })
+    }
+})
+
+router.put('/:id/permissions', verifyToken, async (request: AuthRequest, response: Response) => {
+    try {
+        if (!request.body.userId) {
+            response.status(400).json({ error: 'User id is required to grant edit permission' })
+            return
+        }
+        if (request.body.userId === request.user?.id) {
+            response.status(400).json({ error: 'You cannot grant edit permission to yourself' })
+            return
+        }
+
+        const userExists: IUser | null = await User.findById(request.body.userId)
+        if (!userExists) {
+            response.status(404).json({ error: 'User not found' })
+            return
+        }
+
+        const textDocument: ITextDocument | null = await TextDocument.findOne({
+            _id: request.params.id,
+            user: request.user?.id
+        })
+        if (!textDocument) {
+            response.status(404).json({ error: 'Text document not found'})
+            return
+        }
+        if (textDocument.permissions.includes(request.body.userId)) {
+            response.status(400).json({ error: 'This user already has permission to edit the text document' })
+            return
+        }
+
+        textDocument.permissions.push(request.body.userId)
+        await textDocument.save()
+        response.status(200).json({ message: 'User has been granted edit permission successfully' })
+    } catch (error) {
+        response.status(500).json({ error: 'Error updating permissions'})
     }
 })
 

@@ -1,6 +1,12 @@
+export interface IUser {
+    _id: string
+    username: string
+}
+
 export interface ITextDocument {
     _id?: string
     name: string
     text: string
-    user?: string
+    user?: IUser[]
+    permissions?: string[]
 }

@@ -7,6 +7,7 @@ import Header from './components/Header'
 import { TextDocumentProvider } from './context/TextDocumentContext'
 import TextDocumentEditorPage from './pages/TextDocumentEditorPage'
 import AuthRequire from './components/AuthRequire'
+import SharedWithMePage from './pages/SharedWithMePage'
 
 const App = () => {
   return (
@@ -17,6 +18,7 @@ const App = () => {
           <Routes>
             <Route element={<AuthRequire />}>
               <Route path='/' element={<HomePage />} />
+              <Route path='/shared-with-me' element={<SharedWithMePage />} />
               <Route path='/textdocuments/new' element={<TextDocumentEditorPage />} />
               <Route path='/textdocuments/:id/edit' element={<TextDocumentEditorPage />} />
             </Route>

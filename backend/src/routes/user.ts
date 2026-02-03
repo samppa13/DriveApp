@@ -2,6 +2,7 @@ import { Request, Response, Router } from 'express'
 import bcrypt from 'bcryptjs'
 import jwt, { JwtPayload } from 'jsonwebtoken'
 import { IUser, User } from '../models/User'
+import { verifyToken } from '../middleware/auth'
 
 const router: Router = Router()
 
@@ -55,6 +56,15 @@ router.post('/login', async (request: Request, response: Response) => {
         response.status(200).json({ token })
     } catch (error: any) {
         response.status(500).json({ error: 'Error logging in' })
+    }
+})
+
+router.get('/', verifyToken, async (request: Request, response: Response) => {
+    try {
+        const users: IUser[] = await User.find().select('-password')
+        return response.status(200).json(users)
+    } catch (error: any) {
+        response.status(500).json({ error: 'Error while fetching users' })
     }
 })
 

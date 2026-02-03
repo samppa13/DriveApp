@@ -18,7 +18,10 @@ const TextDocumentEditorPage = () => {
             return
         }
 
-        const existingDocument: ITextDocument | undefined = textDocs.textDocuments.find((doc) => doc._id === id)
+        const ownedDocument: ITextDocument | undefined = textDocs.ownedTextDocuments.find((doc) => doc._id === id)
+        const sharedDocument: ITextDocument | undefined = textDocs.sharedTextDocuments.find((doc) => doc._id === id)
+
+        const existingDocument: ITextDocument | undefined = ownedDocument || sharedDocument
         if (!existingDocument) {
             setNotFound(true)
             return
@@ -26,7 +29,7 @@ const TextDocumentEditorPage = () => {
 
         setDocument(existingDocument)
         setNotFound(false)
-    }, [id, textDocs?.loading, textDocs?.textDocuments])
+    }, [id, textDocs?.loading, textDocs?.ownedTextDocuments])
 
     const handleSave = async (doc: ITextDocument) => {
         if (!doc.name) {
@@ -95,12 +98,16 @@ const TextDocumentEditorPage = () => {
         return <p>Loading...</p>
     }
 
+    const isOwner = textDocs.ownedTextDocuments.some(
+        (textDoc) => textDoc._id === id
+    )
+
     return (
         <TextDocumentEditor
             message={message}
             document={document}
             handleSave={handleSave}
-            handleDelete={handleDelete}
+            handleDelete={isOwner ? handleDelete : undefined}
         />
     )
 }

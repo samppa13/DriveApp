@@ -8,7 +8,7 @@ const HomePage = () => {
     return (
         <div>
             <p>
-                Username: {auth.user!.username}, Id: {auth.user!.id}
+                Username: {auth.user!.username}, Id: {auth.user!._id}
             </p>
             <MyDrive />
         </div>
