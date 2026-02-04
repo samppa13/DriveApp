@@ -5,6 +5,7 @@ interface ITextDocument extends Document {
     text: string
     user: mongoose.Types.ObjectId
     permissions: mongoose.Types.ObjectId[]
+    viewToken: string | null
 }
 
 const textDocumentSchema: Schema = new Schema({
@@ -25,6 +26,10 @@ const textDocumentSchema: Schema = new Schema({
         type: [mongoose.Schema.Types.ObjectId],
         ref: 'User',
         default: []
+    },
+    viewToken: {
+        type: String,
+        default: null
     }
 })
 

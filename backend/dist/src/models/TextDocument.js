@@ -53,6 +53,10 @@ const textDocumentSchema = new mongoose_1.Schema({
         type: [mongoose_1.default.Schema.Types.ObjectId],
         ref: 'User',
         default: []
+    },
+    viewToken: {
+        type: String,
+        default: null
     }
 });
 const TextDocument = mongoose_1.default.model('TextDocument', textDocumentSchema);

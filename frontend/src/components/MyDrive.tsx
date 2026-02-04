@@ -133,6 +133,23 @@ const MyDrive = () => {
         })
     }
 
+    const handleCreateViewLink = async (docId: string | undefined) => {
+        if (!docId) {
+            setMessage('Text document id is undefined')
+            return
+        }
+        if (!textDocs) {
+            return
+        }
+
+        try {
+            await textDocs.createViewLink(docId)
+            setMessage('Text document share view link created successfully')
+        } catch (error: any) {
+            setMessage(error.message)
+        }
+    }
+
     return (
         <div>
             <div>
@@ -143,7 +160,7 @@ const MyDrive = () => {
                     message
                     && <p
                         style={{ color:
-                            (message === 'Text document deleted successfully' || message === 'User has been granted edit permission successfully')
+                            (message === 'Text document deleted successfully' || message === 'User has been granted edit permission successfully' || message === 'Text document share view link created successfully')
                             ? 'green'
                             : 'red'
                         }}
@@ -158,13 +175,17 @@ const MyDrive = () => {
                         <thead>
                             <tr>
                                 <th>Name</th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th>View link</th>
                             </tr>
                         </thead>
                         <tbody>
                             {
                                 textDocs?.ownedTextDocuments.map((textDocument) => (
                                     <tr key={textDocument._id}>
-                                        <th onClick={() => handleEditDoc(textDocument._id)}>
+                                        <th scope='row' onClick={() => handleEditDoc(textDocument._id)}>
                                             {textDocument.name}
                                         </th>
                                         <td>
@@ -194,6 +215,19 @@ const MyDrive = () => {
                                             <button onClick={() => handleShareDoc(textDocument._id)}>
                                                 Share
                                             </button>
+                                        </td>
+                                        <td>
+                                            <button onClick={() => handleCreateViewLink(textDocument._id)}>
+                                                Create view link
+                                            </button>
+                                        </td>
+                                        <td>
+                                            {
+                                                textDocument.viewToken
+                                                && <p>
+                                                    http://localhost:5173/textdocuments/view/{textDocument.viewToken}
+                                                </p>
+                                            }
                                         </td>
                                     </tr>
                                 ))

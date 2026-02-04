@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
+const uuid_1 = require("uuid");
 const auth_1 = require("../middleware/auth");
 const TextDocument_1 = require("../models/TextDocument");
 const User_1 = require("../models/User");
@@ -113,6 +114,44 @@ router.put('/:id/permissions', auth_1.verifyToken, async (request, response) => 
     }
     catch (error) {
         response.status(500).json({ error: 'Error updating permissions' });
+    }
+});
+router.put('/:id/permissions/view', auth_1.verifyToken, async (request, response) => {
+    try {
+        const updatedTextDocument = await TextDocument_1.TextDocument.findOne({
+            _id: request.params.id,
+            user: request.user?.id
+        });
+        if (!updatedTextDocument) {
+            response.status(404).json({ error: 'Text document not found' });
+            return;
+        }
+        if (updatedTextDocument.viewToken) {
+            response.status(400).json({ error: 'This text document already has a view link' });
+            return;
+        }
+        const viewToken = (0, uuid_1.v4)();
+        updatedTextDocument.viewToken = viewToken;
+        await updatedTextDocument.save();
+        response.status(200).json(viewToken);
+    }
+    catch (error) {
+        response.status(500).json({ error: 'Error creating share view link' });
+    }
+});
+router.get('/:uuid/view', async (request, response) => {
+    try {
+        const textDocument = await TextDocument_1.TextDocument.findOne({
+            viewToken: request.params.uuid
+        });
+        if (!textDocument) {
+            response.status(400).json({ error: 'Text document not found' });
+            return;
+        }
+        response.status(200).json(textDocument);
+    }
+    catch (error) {
+        response.status(500).json({ error: 'Error fetching text document' });
     }
 });
 exports.default = router;

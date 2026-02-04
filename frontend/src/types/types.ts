@@ -9,4 +9,5 @@ export interface ITextDocument {
     text: string
     user?: IUser[]
     permissions?: string[]
+    viewToken?: string
 }

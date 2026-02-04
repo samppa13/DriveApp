@@ -11,6 +11,7 @@ interface TextDocumentContextSettings {
     updateTextDocument: (textDocument: ITextDocument) => Promise<ITextDocument>
     deleteTextDocument: (id: string) => Promise<string>
     shareTextDocument: (docId: string, userId: string) => Promise<string>
+    createViewLink: (docId: string) => Promise<void>
 }
 
 export const TextDocumentContext = createContext<TextDocumentContextSettings | undefined>(undefined)
@@ -146,6 +147,28 @@ export const TextDocumentProvider: React.FC<{ children: ReactNode }> = ({ childr
         return data.message
     }
 
+    const createViewLink = async (docId: string) => {
+        const response: Response = await fetch(`http://localhost:9000/api/textdocuments/${docId}/permissions/view`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${auth.token}`
+            }
+        })
+
+        const data = await response.json()
+        if (!response.ok) {
+            throw new Error(data.error || 'Error creating share view link')
+        }
+
+        setOwnedTextDocuments((prevDocs) => prevDocs.map(
+            (textDoc) => textDoc._id === docId
+                ? { ...textDoc, viewToken: data }
+                : textDoc
+        ))
+
+        return
+    }
+
     return (
         <TextDocumentContext.Provider value={{
             ownedTextDocuments,
@@ -155,7 +178,8 @@ export const TextDocumentProvider: React.FC<{ children: ReactNode }> = ({ childr
             createTextDocument,
             updateTextDocument,
             deleteTextDocument,
-            shareTextDocument
+            shareTextDocument,
+            createViewLink
         }}>
             { children }
         </TextDocumentContext.Provider>

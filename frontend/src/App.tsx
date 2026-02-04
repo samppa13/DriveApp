@@ -8,6 +8,7 @@ import { TextDocumentProvider } from './context/TextDocumentContext'
 import TextDocumentEditorPage from './pages/TextDocumentEditorPage'
 import AuthRequire from './components/AuthRequire'
 import SharedWithMePage from './pages/SharedWithMePage'
+import SharedTextDocumentPage from './pages/SharedTextDocumentPage'
 
 const App = () => {
   return (
@@ -24,6 +25,7 @@ const App = () => {
             </Route>
             <Route path='/login' element={<LoginPage />} />
             <Route path='/register' element={<RegisterPage />} />
+            <Route path='/textdocuments/view/:viewToken' element={<SharedTextDocumentPage />} />
           </Routes>
         </BrowserRouter>
       </TextDocumentProvider>

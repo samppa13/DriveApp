@@ -1,5 +1,6 @@
 import { Request, Response, Router } from 'express'
 import { JwtPayload } from 'jsonwebtoken'
+import { v4 as uuidv4 } from 'uuid'
 import { verifyToken } from '../middleware/auth'
 import { ITextDocument, TextDocument } from '../models/TextDocument'
 import { IUser, User } from '../models/User'
@@ -130,6 +131,47 @@ router.put('/:id/permissions', verifyToken, async (request: AuthRequest, respons
         response.status(200).json({ message: 'User has been granted edit permission successfully' })
     } catch (error) {
         response.status(500).json({ error: 'Error updating permissions'})
+    }
+})
+
+router.put('/:id/permissions/view', verifyToken, async (request: AuthRequest, response: Response) => {
+    try {
+        const updatedTextDocument: ITextDocument | null = await TextDocument.findOne({
+            _id: request.params.id,
+            user: request.user?.id
+        })
+        if (!updatedTextDocument) {
+            response.status(404).json({ error: 'Text document not found' })
+            return
+        }
+        if (updatedTextDocument.viewToken) {
+            response.status(400).json({ error: 'This text document already has a view link' })
+            return
+        }
+
+        const viewToken: string = uuidv4()
+        updatedTextDocument.viewToken = viewToken
+        await updatedTextDocument.save()
+
+        response.status(200).json(viewToken)
+    } catch (error) {
+        response.status(500).json({ error: 'Error creating share view link' })
+    }
+})
+
+router.get('/:uuid/view', async (request: Request, response: Response) => {
+    try {
+        const textDocument: ITextDocument | null = await TextDocument.findOne({
+            viewToken: request.params.uuid
+        })
+        if (!textDocument) {
+            response.status(400).json({ error: 'Text document not found' })
+            return
+        }
+
+        response.status(200).json(textDocument)
+    } catch (error) {
+        response.status(500).json({ error: 'Error fetching text document' })
     }
 })
 
