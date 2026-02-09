@@ -30,15 +30,27 @@ const SharedWithMePage = () => {
                     <thead>
                         <tr>
                             <th>Name</th>
+                            <th>Created</th>
+                            <th>Modified</th>
                         </tr>
                     </thead>
                     <tbody>
                         {
                             textDocs?.sharedTextDocuments.map((textDocument) => (
                                 <tr key={textDocument._id}>
-                                    <th onClick={() => handleEditDoc(textDocument._id)}>
+                                    <th scope='row' onClick={() => handleEditDoc(textDocument._id)}>
                                         {textDocument.name}
                                     </th>
+                                    <td>
+                                        {
+                                            new Date(textDocument.createdAt!).toLocaleDateString('fi')
+                                        }
+                                    </td>
+                                    <td>
+                                        {
+                                            new Date(textDocument.updatedAt!).toLocaleDateString('fi')
+                                        }
+                                    </td>
                                 </tr>
                             ))
                         }

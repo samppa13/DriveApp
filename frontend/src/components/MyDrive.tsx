@@ -175,6 +175,8 @@ const MyDrive = () => {
                         <thead>
                             <tr>
                                 <th>Name</th>
+                                <th>Created</th>
+                                <th>Modified</th>
                                 <th></th>
                                 <th></th>
                                 <th></th>
@@ -188,6 +190,16 @@ const MyDrive = () => {
                                         <th scope='row' onClick={() => handleEditDoc(textDocument._id)}>
                                             {textDocument.name}
                                         </th>
+                                        <td>
+                                            {
+                                                new Date(textDocument.createdAt!).toLocaleDateString('fi')
+                                            }
+                                        </td>
+                                        <td>
+                                            {
+                                                new Date(textDocument.updatedAt!).toLocaleDateString('fi')
+                                            }
+                                        </td>
                                         <td>
                                             <button onClick={() => handleDeleteDoc(textDocument._id)}>
                                                 Delete

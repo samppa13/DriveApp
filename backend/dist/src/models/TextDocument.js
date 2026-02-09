@@ -57,7 +57,23 @@ const textDocumentSchema = new mongoose_1.Schema({
     viewToken: {
         type: String,
         default: null
+    },
+    lock: {
+        type: {
+            user: {
+                type: mongoose_1.default.Schema.Types.ObjectId,
+                ref: 'User',
+                required: true
+            },
+            lockTime: {
+                type: Date,
+                required: true
+            }
+        },
+        default: null
     }
+}, {
+    timestamps: true
 });
 const TextDocument = mongoose_1.default.model('TextDocument', textDocumentSchema);
 exports.TextDocument = TextDocument;

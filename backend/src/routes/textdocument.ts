@@ -11,6 +11,8 @@ interface AuthRequest extends Request {
     user?: JwtPayload
 }
 
+const LOCK_TIMEOUT = 2 * 60 * 1000
+
 router.get('/', verifyToken, async (request: AuthRequest, response: Response) => {
     try {
         const ownedTextDocs: ITextDocument[] = await TextDocument.find({
@@ -54,22 +56,33 @@ router.put('/:id', verifyToken, async (request: AuthRequest, response: Response)
     try {
         const { name, text } = request.body
         if (!name) {
-            response.status(400).json({error: 'Document must have a name'})
+            response.status(400).json({error: 'Text document must have a name'})
+            return
         }
 
         const updatedTextDocument: ITextDocument | null = await TextDocument.findOneAndUpdate(
             {
                 _id: request.params.id,
-                $or: [
-                    { user: request.user?.id },
-                    { permissions: request.user?.id }
+                $and: [
+                    {
+                        $or: [
+                            { user: request.user?.id },
+                            { permissions: request.user?.id }
+                        ]
+                    },
+                    {
+                        $or: [
+                            { lock: null },
+                            { 'lock.user': request.user?.id }
+                        ]
+                    }
                 ]
             },
-            { name: name, text: text },
+            { name, text },
             { new: true }
         )
         if (!updatedTextDocument) {
-            response.status(404).json({ error: 'Text document not found' })
+            response.status(404).json({ error: 'Text document is locked by another user or does not found' })
             return
         }
 
@@ -172,6 +185,69 @@ router.get('/:uuid/view', async (request: Request, response: Response) => {
         response.status(200).json(textDocument)
     } catch (error) {
         response.status(500).json({ error: 'Error fetching text document' })
+    }
+})
+
+router.put('/:id/lock', verifyToken, async (request: AuthRequest, response: Response) => {
+    try {
+        const textDocument: ITextDocument | null = await TextDocument.findOne({
+            _id: request.params.id,
+            $or: [
+                { user: request.user?.id },
+                { permissions: request.user?.id }
+            ]
+        })
+        if (!textDocument) {
+            response.status(404).json({ error: 'Text document not found' })
+            return
+        }
+        if (textDocument.lock) {
+            const expired: boolean = Date.now() - textDocument.lock.lockTime.getTime() > LOCK_TIMEOUT
+
+            if (!expired && textDocument.lock.user.toString() !== request.user?.id) {
+                response.status(409).json({ error: 'Text document is currently locked by another user' })
+                return
+            }
+        }
+
+        textDocument.lock = {
+            user: request.user?.id,
+            lockTime: new Date(Date.now())
+        }
+        await textDocument.save()
+        response.status(200).json(textDocument)
+    } catch (error) {
+        response.status(500).json({ error: 'Error adding lock'})
+    }
+})
+
+router.delete('/:id/lock', verifyToken, async (request: AuthRequest, response: Response) => {
+    try {
+        const textDocument: ITextDocument | null = await TextDocument.findOne({
+            _id: request.params.id,
+            $or: [
+                { user: request.user?.id },
+                { permissions: request.user?.id }
+            ]
+        })
+        if (!textDocument) {
+            response.status(404).json({ error: 'Text document not found' })
+            return
+        }
+        if (!textDocument.lock) {
+            response.status(400).json({ error: 'Text document is not locked' })
+            return
+        }
+        if (textDocument.lock.user.toString() !== request.user?.id) {
+            response.status(403).json({ error: 'You do not own the text document lock' })
+            return
+        }
+
+        textDocument.lock = null
+        await textDocument.save()
+        response.status(200).json({ message: 'Text document lock released successfully'})
+    } catch (error) {
+        response.status(500).json({ error: 'Error releasing text document lock' })
     }
 })
 

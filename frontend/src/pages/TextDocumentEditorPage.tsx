@@ -8,6 +8,7 @@ const TextDocumentEditorPage = () => {
     const [document, setDocument] = useState<ITextDocument | undefined>(undefined)
     const [notFound, setNotFound] = useState<boolean>(false)
     const [message, setMessage] = useState<string>('')
+    const [isLockAdded, setIsLockAdded] = useState<boolean>(false)
 
     const { id } = useParams()
     const navigate = useNavigate()
@@ -27,9 +28,49 @@ const TextDocumentEditorPage = () => {
             return
         }
 
+        const addLock = async () => {
+            try {
+                await textDocs.addTextDocLock(id)
+                setIsLockAdded(true)
+            } catch (error: any) {
+                setMessage(error.message)
+            }
+        }
+        addLock()
+
         setDocument(existingDocument)
         setNotFound(false)
-    }, [id, textDocs?.loading, textDocs?.ownedTextDocuments])
+
+        return () => {
+            const releaseLock = async () => {
+                if (!isLockAdded) {
+                    return
+                }
+                try {
+                    await textDocs.deleteTextDocLock(id)
+                } catch (error: any) {
+                    console.log(`Failed to release lock: ${error}`)
+                }
+            }
+            releaseLock()
+        }
+    }, [id, textDocs?.loading, textDocs?.ownedTextDocuments, textDocs?.sharedTextDocuments, isLockAdded])
+
+    useEffect(() => {
+        if (!id || !textDocs || !isLockAdded) {
+            return
+        }
+
+        const intervalId = setInterval(async () => {
+            try {
+                await textDocs.addTextDocLock(id)
+            } catch (error: any) {
+                setMessage(error.message)
+            }
+        }, 20000)
+
+        return () => clearInterval(intervalId)
+    }, [id, textDocs, isLockAdded])
 
     const handleSave = async (doc: ITextDocument) => {
         if (!doc.name) {
@@ -78,6 +119,9 @@ const TextDocumentEditorPage = () => {
             />
         )
     }
+    if (!textDocs || textDocs.loading || !document) {
+        return <p>Loading...</p>
+    }
     if (notFound) {
         return (
             <div>
@@ -94,8 +138,8 @@ const TextDocumentEditorPage = () => {
             </div>
         )
     }
-    if (!textDocs || textDocs.loading) {
-        return <p>Loading...</p>
+    if (message === 'Text document is currently locked by another user') {
+        return <p style={{ color: 'red' }}>{message}</p>
     }
 
     const isOwner = textDocs.ownedTextDocuments.some(
