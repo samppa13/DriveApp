@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { TextDocumentContext } from '../context/TextDocumentContext'
 import type { ITextDocument } from '../types/types'
@@ -9,7 +9,9 @@ const TextDocumentEditorPage = () => {
     const [notFound, setNotFound] = useState<boolean>(false)
     const [message, setMessage] = useState<string>('')
     const [isLockAdded, setIsLockAdded] = useState<boolean>(false)
+    const [isFetching, setIsFetching] = useState<boolean>(true)
 
+    const lockRef = useRef<boolean>(false)
     const { id } = useParams()
     const navigate = useNavigate()
     const textDocs = useContext(TextDocumentContext)
@@ -19,31 +21,30 @@ const TextDocumentEditorPage = () => {
             return
         }
 
-        const ownedDocument: ITextDocument | undefined = textDocs.ownedTextDocuments.find((doc) => doc._id === id)
-        const sharedDocument: ITextDocument | undefined = textDocs.sharedTextDocuments.find((doc) => doc._id === id)
-
-        const existingDocument: ITextDocument | undefined = ownedDocument || sharedDocument
-        if (!existingDocument) {
-            setNotFound(true)
-            return
-        }
-
-        const addLock = async () => {
+        const fetchTextDoc = async () => {
             try {
+                const textDocument: ITextDocument = await textDocs.fetchTextDocument(id)
+                setDocument(textDocument)
+                setNotFound(false)
+
                 await textDocs.addTextDocLock(id)
+                lockRef.current = true
                 setIsLockAdded(true)
             } catch (error: any) {
+                if (error.message === 'Text document not found') {
+                    setNotFound(true)
+                }
                 setMessage(error.message)
+            } finally {
+                setIsFetching(false)
             }
         }
-        addLock()
 
-        setDocument(existingDocument)
-        setNotFound(false)
+        fetchTextDoc()
 
         return () => {
             const releaseLock = async () => {
-                if (!isLockAdded) {
+                if (!lockRef.current) {
                     return
                 }
                 try {
@@ -54,10 +55,10 @@ const TextDocumentEditorPage = () => {
             }
             releaseLock()
         }
-    }, [id, textDocs?.loading, textDocs?.ownedTextDocuments, textDocs?.sharedTextDocuments, isLockAdded])
+    }, [id, textDocs?.loading])
 
     useEffect(() => {
-        if (!id || !textDocs || !isLockAdded) {
+        if (!id || !textDocs || !isLockAdded || !document) {
             return
         }
 
@@ -70,7 +71,7 @@ const TextDocumentEditorPage = () => {
         }, 20000)
 
         return () => clearInterval(intervalId)
-    }, [id, textDocs, isLockAdded])
+    }, [id, textDocs, isLockAdded, document])
 
     const handleSave = async (doc: ITextDocument) => {
         if (!doc.name) {
@@ -119,9 +120,6 @@ const TextDocumentEditorPage = () => {
             />
         )
     }
-    if (!textDocs || textDocs.loading || !document) {
-        return <p>Loading...</p>
-    }
     if (notFound) {
         return (
             <div>
@@ -138,11 +136,14 @@ const TextDocumentEditorPage = () => {
             </div>
         )
     }
+    if (isFetching || textDocs?.loading) {
+        return <p>Loading...</p>
+    }
     if (message === 'Text document is currently locked by another user') {
         return <p style={{ color: 'red' }}>{message}</p>
     }
 
-    const isOwner = textDocs.ownedTextDocuments.some(
+    const isOwner = textDocs?.ownedTextDocuments.some(
         (textDoc) => textDoc._id === id
     )
 

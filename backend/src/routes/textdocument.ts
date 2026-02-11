@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { verifyToken } from '../middleware/auth'
 import { ITextDocument, TextDocument } from '../models/TextDocument'
 import { IUser, User } from '../models/User'
+import mongoose from 'mongoose'
 
 const router: Router = Router()
 
@@ -49,6 +50,32 @@ router.post('/', verifyToken, async (request: AuthRequest, response: Response) =
         response.status(200).json(newTextDocument)
     } catch (error) {
         response.status(500).json({ error: 'Error creating text document' })
+    }
+})
+
+router.get('/:id', verifyToken, async (request: AuthRequest, response: Response) => {
+    try {
+        const id = Array.isArray(request.params.id) ? request.params.id[0] : request.params.id
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            response.status(404).json({ error: 'Text document not found' })
+            return
+        }
+
+        const textDocument: ITextDocument | null = await TextDocument.findOne({
+            _id: id,
+            $or: [
+                { user: request.user?.id },
+                { permissions: request.user?.id }
+            ]
+        })
+        if (!textDocument) {
+            response.status(404).json({ error: 'Text document not found' })
+            return
+        }
+
+        response.json(textDocument)
+    } catch (error) {
+        response.status(500).json({ error: 'Error fetching text document'})
     }
 })
 

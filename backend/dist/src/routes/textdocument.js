@@ -1,10 +1,14 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const uuid_1 = require("uuid");
 const auth_1 = require("../middleware/auth");
 const TextDocument_1 = require("../models/TextDocument");
 const User_1 = require("../models/User");
+const mongoose_1 = __importDefault(require("mongoose"));
 const router = (0, express_1.Router)();
 const LOCK_TIMEOUT = 2 * 60 * 1000;
 router.get('/', auth_1.verifyToken, async (request, response) => {
@@ -41,6 +45,30 @@ router.post('/', auth_1.verifyToken, async (request, response) => {
     }
     catch (error) {
         response.status(500).json({ error: 'Error creating text document' });
+    }
+});
+router.get('/:id', auth_1.verifyToken, async (request, response) => {
+    try {
+        const id = Array.isArray(request.params.id) ? request.params.id[0] : request.params.id;
+        if (!mongoose_1.default.Types.ObjectId.isValid(id)) {
+            response.status(404).json({ error: 'Text document not found' });
+            return;
+        }
+        const textDocument = await TextDocument_1.TextDocument.findOne({
+            _id: id,
+            $or: [
+                { user: request.user?.id },
+                { permissions: request.user?.id }
+            ]
+        });
+        if (!textDocument) {
+            response.status(404).json({ error: 'Text document not found' });
+            return;
+        }
+        response.json(textDocument);
+    }
+    catch (error) {
+        response.status(500).json({ error: 'Error fetching text document' });
     }
 });
 router.put('/:id', auth_1.verifyToken, async (request, response) => {

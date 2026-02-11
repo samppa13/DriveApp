@@ -7,6 +7,7 @@ interface TextDocumentContextSettings {
     loading: boolean
     error: string
     sharedTextDocuments: ITextDocument[]
+    fetchTextDocument: (docId: string) => Promise<ITextDocument>
     createTextDocument: (textDocument: ITextDocument) => Promise<ITextDocument>
     updateTextDocument: (textDocument: ITextDocument) => Promise<ITextDocument>
     deleteTextDocument: (id: string) => Promise<string>
@@ -68,6 +69,28 @@ export const TextDocumentProvider: React.FC<{ children: ReactNode }> = ({ childr
         fetchData()
         return () => abortctrl.abort()
     }, [auth.token])
+
+    const fetchTextDocument = async (docId: string) => {
+        const response: Response = await fetch(`http://localhost:9000/api/textdocuments/${docId}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${auth.token}`
+            }
+        })
+
+        const data = await response.json()
+        if (!response.ok) {
+            throw new Error(data.error || 'Error fetching text document')
+        }
+
+        setOwnedTextDocuments((prevDocs) => prevDocs.map(
+            (textDoc) => textDoc._id === data._id ? data : textDoc
+        ))
+        setSharedTextDocuments((prevDocs) => prevDocs.map(
+            (textDoc) => textDoc._id === data._id ? data : textDoc
+        ))
+        return data
+    }
 
     const createTextDocument = async (textDocument: ITextDocument) => {
         const response: Response = await fetch('http://localhost:9000/api/textdocuments', {
@@ -205,6 +228,7 @@ export const TextDocumentProvider: React.FC<{ children: ReactNode }> = ({ childr
             loading,
             error,
             sharedTextDocuments,
+            fetchTextDocument,
             createTextDocument,
             updateTextDocument,
             deleteTextDocument,
