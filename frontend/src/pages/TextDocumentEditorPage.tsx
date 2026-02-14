@@ -143,9 +143,9 @@ const TextDocumentEditorPage = () => {
         return <p style={{ color: 'red' }}>{message}</p>
     }
 
-    const isOwner = textDocs?.ownedTextDocuments.some(
+    const isOwner: boolean = textDocs?.ownedTextDocuments?.some(
         (textDoc) => textDoc._id === id
-    )
+    ) ?? false
 
     return (
         <TextDocumentEditor

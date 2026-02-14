@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { TextDocumentContext } from '../context/TextDocumentContext'
-import type { IUser } from '../types/types'
+import type { ITextDocument, IUser } from '../types/types'
 import { AuthContext } from '../context/AuthContext'
 
 interface ISelectedUser {
@@ -13,6 +13,7 @@ const MyDrive = () => {
     const [message, setMessage] = useState<string>('')
     const [users, setUsers] = useState<IUser[]>([])
     const [selectedUsers, setSelectedUsers] = useState<ISelectedUser[]>([])
+    const [sortTerm, setSortTerm] = useState<string>('created-desc')
 
     const textDocs = useContext(TextDocumentContext)
     const auth = useContext(AuthContext)
@@ -64,6 +65,9 @@ const MyDrive = () => {
         return (
             <p style={{ color: 'red' }}>{textDocs.error}</p>
         )
+    }
+    if (textDocs?.ownedTextDocuments === null) {
+        return <p>Loading...</p>
     }
 
     const handleEditDoc = (id: string | undefined) => {
@@ -150,12 +154,63 @@ const MyDrive = () => {
         }
     }
 
+    let sortedDocuments: ITextDocument[] = []
+    if (textDocs) {
+        sortedDocuments = [...textDocs?.ownedTextDocuments].sort((doc1, doc2) => {
+            if (sortTerm === 'created-desc') {
+                const time1 = doc1.createdAt ? new Date(doc1.createdAt).getTime() : 0
+                const time2 = doc2.createdAt ? new Date(doc2.createdAt).getTime() : 0
+                return time2 - time1
+            }
+            else if (sortTerm === 'created-asc') {
+                const time1 = doc1.createdAt ? new Date(doc1.createdAt).getTime() : 0
+                const time2 = doc2.createdAt ? new Date(doc2.createdAt).getTime() : 0
+                return time1 - time2
+            }
+            else if (sortTerm === 'updated-desc') {
+                const time1 = doc1.updatedAt ? new Date(doc1.updatedAt).getTime() : 0
+                const time2 = doc2.updatedAt ? new Date(doc2.updatedAt).getTime() : 0
+                return time2 - time1
+            }
+            else if (sortTerm === 'updated-asc') {
+                const time1 = doc1.updatedAt ? new Date(doc1.updatedAt).getTime() : 0
+                const time2 = doc2.updatedAt ? new Date(doc2.updatedAt).getTime() : 0
+                return time1 - time2
+            }
+            else if (sortTerm === 'name-asc') {
+                return doc1.name
+                    .toLowerCase()
+                    .localeCompare(doc2.name.toLowerCase())
+            }
+            else if (sortTerm === 'name-desc') {
+                return doc2.name
+                    .toLowerCase()
+                    .localeCompare(doc1.name.toLowerCase())
+            }
+            return 0
+        })
+    }
+
     return (
         <div>
             <div>
                 <button onClick={() => navigate('/textdocuments/new')}>
                     Create a new document
                 </button>
+                <label htmlFor="sort">Sort</label>
+                <select
+                    name='sort'
+                    id='sort'
+                    value={sortTerm}
+                    onChange={(event) => setSortTerm(event.target.value)}
+                >
+                    <option value='created-desc'>Created (new first)</option>
+                    <option value='created-asc'>Created (oldest first)</option>
+                    <option value='updated-desc'>Updated (new first)</option>
+                    <option value='updated-asc'>Updated (oldest first)</option>
+                    <option value='name-asc'>Name (A-Z)</option>
+                    <option value='name-desc'>Name (Z-A)</option>
+                </select>
                 {
                     message
                     && <p
@@ -168,7 +223,7 @@ const MyDrive = () => {
                         {message}
                     </p>
                 }
-                {!textDocs?.ownedTextDocuments.length ? (
+                {!(sortedDocuments.length > 0) ? (
                     <h2>You have not any text documents.</h2>
                 ) : (
                     <table>
@@ -185,7 +240,7 @@ const MyDrive = () => {
                         </thead>
                         <tbody>
                             {
-                                textDocs?.ownedTextDocuments.map((textDocument) => (
+                                sortedDocuments.map((textDocument) => (
                                     <tr key={textDocument._id}>
                                         <th scope='row' onClick={() => handleEditDoc(textDocument._id)}>
                                             {textDocument.name}

@@ -3,10 +3,10 @@ import { AuthContext } from './AuthContext'
 import type { ITextDocument } from '../types/types'
 
 interface TextDocumentContextSettings {
-    ownedTextDocuments: ITextDocument[]
+    ownedTextDocuments: ITextDocument[] | null
     loading: boolean
     error: string
-    sharedTextDocuments: ITextDocument[]
+    sharedTextDocuments: ITextDocument[] | null
     fetchTextDocument: (docId: string) => Promise<ITextDocument>
     createTextDocument: (textDocument: ITextDocument) => Promise<ITextDocument>
     updateTextDocument: (textDocument: ITextDocument) => Promise<ITextDocument>
@@ -20,10 +20,10 @@ interface TextDocumentContextSettings {
 export const TextDocumentContext = createContext<TextDocumentContextSettings | undefined>(undefined)
 
 export const TextDocumentProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [ownedTextDocuments, setOwnedTextDocuments] = useState<ITextDocument[]>([])
+    const [ownedTextDocuments, setOwnedTextDocuments] = useState<ITextDocument[] | null>(null)
     const [loading, setLoading] = useState<boolean>(true)
     const [error, setError] = useState<string>('')
-    const [sharedTextDocuments, setSharedTextDocuments] = useState<ITextDocument[]>([])
+    const [sharedTextDocuments, setSharedTextDocuments] = useState<ITextDocument[] | null>(null)
 
     const auth = useContext(AuthContext)
 
@@ -83,12 +83,18 @@ export const TextDocumentProvider: React.FC<{ children: ReactNode }> = ({ childr
             throw new Error(data.error || 'Error fetching text document')
         }
 
-        setOwnedTextDocuments((prevDocs) => prevDocs.map(
-            (textDoc) => textDoc._id === data._id ? data : textDoc
-        ))
-        setSharedTextDocuments((prevDocs) => prevDocs.map(
-            (textDoc) => textDoc._id === data._id ? data : textDoc
-        ))
+        setOwnedTextDocuments((prevDocs) => prevDocs
+            ? prevDocs.map(
+                (textDoc) => textDoc._id === data._id ? data : textDoc
+            )
+            : prevDocs
+        )
+        setSharedTextDocuments((prevDocs) => prevDocs
+            ? prevDocs.map(
+                (textDoc) => textDoc._id === data._id ? data : textDoc
+            )
+            : prevDocs
+        )
         return data
     }
 
@@ -107,7 +113,9 @@ export const TextDocumentProvider: React.FC<{ children: ReactNode }> = ({ childr
             throw new Error(data.error || 'Error creating text document')
         }
 
-        setOwnedTextDocuments((prevDocs) => [...prevDocs, data])
+        setOwnedTextDocuments((prevDocs) =>
+            prevDocs ? [...prevDocs, data] : [data]
+        )
         return data
     }
 
@@ -126,12 +134,18 @@ export const TextDocumentProvider: React.FC<{ children: ReactNode }> = ({ childr
             throw new Error(data.error || 'Error updating text document')
         }
 
-        setOwnedTextDocuments((prevDocs) => prevDocs.map(
-            (textDoc) => textDoc._id === data._id ? data : textDoc
-        ))
-        setSharedTextDocuments((prevDocs) => prevDocs.map(
-            (textDoc) => textDoc._id === data._id ? data : textDoc
-        ))
+        setOwnedTextDocuments((prevDocs) => prevDocs
+            ? prevDocs.map(
+                (textDoc) => textDoc._id === data._id ? data : textDoc
+            )
+            : prevDocs
+        )
+        setSharedTextDocuments((prevDocs) => prevDocs
+            ? prevDocs.map(
+                (textDoc) => textDoc._id === data._id ? data : textDoc
+            )
+            : prevDocs
+        )
         return data
     }
 
@@ -148,9 +162,12 @@ export const TextDocumentProvider: React.FC<{ children: ReactNode }> = ({ childr
             throw new Error(data.error || 'Error deleting text document')
         }
 
-        setOwnedTextDocuments((prevDocs) => prevDocs.filter(
-            (textDoc) => textDoc._id !== id
-        ))
+        setOwnedTextDocuments((prevDocs) => prevDocs
+            ? prevDocs.filter(
+                (textDoc) => textDoc._id !== id
+            )
+            : prevDocs
+        )
         return data.message
     }
 
@@ -185,11 +202,14 @@ export const TextDocumentProvider: React.FC<{ children: ReactNode }> = ({ childr
             throw new Error(data.error || 'Error creating share view link')
         }
 
-        setOwnedTextDocuments((prevDocs) => prevDocs.map(
-            (textDoc) => textDoc._id === docId
-                ? { ...textDoc, viewToken: data }
-                : textDoc
-        ))
+        setOwnedTextDocuments((prevDocs) => prevDocs
+            ? prevDocs.map(
+                (textDoc) => textDoc._id === docId
+                    ? { ...textDoc, viewToken: data }
+                    : textDoc
+            )
+            : prevDocs
+        )
 
         return
     }
