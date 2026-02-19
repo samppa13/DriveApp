@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { TextDocumentContext } from '../context/TextDocumentContext'
-import type { ITextDocument, IUser } from '../types/types'
+import { DocumentContext } from '../context/DocumentContext'
+import type { IDocument, IUser } from '../types/types'
 import { AuthContext } from '../context/AuthContext'
 
 interface ISelectedUser {
@@ -14,8 +14,9 @@ const MyDrive = () => {
     const [users, setUsers] = useState<IUser[]>([])
     const [selectedUsers, setSelectedUsers] = useState<ISelectedUser[]>([])
     const [sortTerm, setSortTerm] = useState<string>('created-desc')
+    const [docType, setDocType] = useState<string>('')
 
-    const textDocs = useContext(TextDocumentContext)
+    const docs = useContext(DocumentContext)
     const auth = useContext(AuthContext)
     const navigate = useNavigate()
 
@@ -56,35 +57,35 @@ const MyDrive = () => {
         fetchUsers()
     }, [auth.token, auth.user?._id])
 
-    if (textDocs?.loading) {
+    if (docs?.loading) {
         return (
             <p>Loading...</p>
         )
     }
-    if (textDocs?.error) {
+    if (docs?.error) {
         return (
-            <p style={{ color: 'red' }}>{textDocs.error}</p>
+            <p style={{ color: 'red' }}>{docs.error}</p>
         )
     }
-    if (textDocs?.ownedTextDocuments === null) {
+    if (docs?.ownedDocuments === null) {
         return <p>Loading...</p>
     }
 
-    const handleEditDoc = (id: string | undefined) => {
-        navigate(`/textdocuments/${id}/edit`)
+    const handleEditDoc = (id: string | undefined, type: string) => {
+        navigate(`/${type.toLowerCase()}s/${id}/edit`)
     }
 
-    const handleDeleteDoc = async (id: string | undefined) => {
+    const handleDeleteDoc = async (id: string | undefined, type: string) => {
         if (!id) {
             setMessage('Id is undefined')
             return
         }
-        if (!textDocs) {
+        if (!docs) {
             return
         }
 
         try {
-            const mess = await textDocs.deleteTextDocument(id)
+            const mess = await docs.deleteDocument(id, type)
             setMessage(mess)
         } catch (error: any) {
             setMessage(error.message)
@@ -105,12 +106,12 @@ const MyDrive = () => {
             return
         }
 
-        if (!textDocs) {
+        if (!docs) {
             return
         }
 
         try {
-            const mess = await textDocs.shareTextDocument(docId, selectedUser.userId)
+            const mess = await docs.shareDocument(docId, selectedUser.userId)
             setMessage(mess)
             setSelectedUsers((prevUser) => prevUser.filter(
                 (item) => item.docId !== docId
@@ -142,21 +143,29 @@ const MyDrive = () => {
             setMessage('Text document id is undefined')
             return
         }
-        if (!textDocs) {
+        if (!docs) {
             return
         }
 
         try {
-            await textDocs.createViewLink(docId)
+            await docs.createViewLink(docId)
             setMessage('Text document share view link created successfully')
         } catch (error: any) {
             setMessage(error.message)
         }
     }
 
-    let sortedDocuments: ITextDocument[] = []
-    if (textDocs) {
-        sortedDocuments = [...textDocs?.ownedTextDocuments].sort((doc1, doc2) => {
+    const handleCreateDoc = () => {
+        if (docType.length === 0) {
+            setMessage('You do not select document type')
+            return
+        }
+        navigate(`/${docType}s/new`)
+    }
+
+    let sortedDocuments: IDocument[] = []
+    if (docs) {
+        sortedDocuments = [...docs?.ownedDocuments].sort((doc1, doc2) => {
             if (sortTerm === 'created-desc') {
                 const time1 = doc1.createdAt ? new Date(doc1.createdAt).getTime() : 0
                 const time2 = doc2.createdAt ? new Date(doc2.createdAt).getTime() : 0
@@ -194,10 +203,20 @@ const MyDrive = () => {
     return (
         <div>
             <div>
-                <button onClick={() => navigate('/textdocuments/new')}>
+                <select
+                    name='create-document'
+                    id='create-document'
+                    value={docType}
+                    onChange={(event) => setDocType(event.target.value)}
+                >
+                    <option value=''>Select document type</option>
+                    <option value='textdocument'>Text document</option>
+                    <option value='presentationdocument'>Presentation document</option>
+                </select>
+                <button onClick={handleCreateDoc}>
                     Create a new document
                 </button>
-                <label htmlFor="sort">Sort</label>
+                <label htmlFor='sort'>Sort</label>
                 <select
                     name='sort'
                     id='sort'
@@ -224,7 +243,7 @@ const MyDrive = () => {
                     </p>
                 }
                 {!(sortedDocuments.length > 0) ? (
-                    <h2>You have not any text documents.</h2>
+                    <h2>You have not any documents.</h2>
                 ) : (
                     <table>
                         <thead>
@@ -240,30 +259,30 @@ const MyDrive = () => {
                         </thead>
                         <tbody>
                             {
-                                sortedDocuments.map((textDocument) => (
-                                    <tr key={textDocument._id}>
-                                        <th scope='row' onClick={() => handleEditDoc(textDocument._id)}>
-                                            {textDocument.name}
+                                sortedDocuments.map((document) => (
+                                    <tr key={document._id}>
+                                        <th scope='row' onClick={() => handleEditDoc(document._id, document.type)}>
+                                            {document.name}
                                         </th>
                                         <td>
                                             {
-                                                new Date(textDocument.createdAt!).toLocaleDateString('fi')
+                                                new Date(document.createdAt!).toLocaleDateString('fi')
                                             }
                                         </td>
                                         <td>
                                             {
-                                                new Date(textDocument.updatedAt!).toLocaleDateString('fi')
+                                                new Date(document.updatedAt!).toLocaleDateString('fi')
                                             }
                                         </td>
                                         <td>
-                                            <button onClick={() => handleDeleteDoc(textDocument._id)}>
+                                            <button onClick={() => handleDeleteDoc(document._id, document.type)}>
                                                 Delete
                                             </button>
                                         </td>
                                         <td>
                                             <select
-                                                value={selectedUsers.find((item) => item.docId === textDocument._id)?.userId || ''}
-                                                onChange={(event) => handleSelectUser(textDocument._id!, event.target.value)}
+                                                value={selectedUsers.find((item) => item.docId === document._id)?.userId || ''}
+                                                onChange={(event) => handleSelectUser(document._id!, event.target.value)}
                                             >
                                                 <option value="">
                                                     Select user
@@ -271,7 +290,7 @@ const MyDrive = () => {
                                                 {
                                                     users.map((user) => (
                                                         <option
-                                                            key={`${textDocument._id}-${user._id}`}
+                                                            key={`${document._id}-${user._id}`}
                                                             value={user._id}
                                                         >
                                                             {user.username}
@@ -279,20 +298,20 @@ const MyDrive = () => {
                                                     ))
                                                 }
                                             </select>
-                                            <button onClick={() => handleShareDoc(textDocument._id)}>
+                                            <button onClick={() => handleShareDoc(document._id)}>
                                                 Share
                                             </button>
                                         </td>
                                         <td>
-                                            <button onClick={() => handleCreateViewLink(textDocument._id)}>
+                                            <button onClick={() => handleCreateViewLink(document._id)}>
                                                 Create view link
                                             </button>
                                         </td>
                                         <td>
                                             {
-                                                textDocument.viewToken
+                                                document.viewToken
                                                 && <p>
-                                                    http://localhost:5173/textdocuments/view/{textDocument.viewToken}
+                                                    http://localhost:5173/{document.type.toLowerCase()}s/view/{document.viewToken}
                                                 </p>
                                             }
                                         </td>

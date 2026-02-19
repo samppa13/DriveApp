@@ -1,35 +1,35 @@
 import { useContext, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { TextDocumentContext } from '../context/TextDocumentContext'
-import type { ITextDocument } from '../types/types'
+import { DocumentContext } from '../context/DocumentContext'
+import type { IDocument } from '../types/types'
 
 const SharedWithMePage = () => {
     const [sortTerm, setSortTerm] = useState<string>('created-desc')
 
-    const textDocs = useContext(TextDocumentContext)
+    const docs = useContext(DocumentContext)
     const navigate = useNavigate()
 
-    if (textDocs?.loading) {
+    if (docs?.loading) {
         return (
             <p>Loading...</p>
         )
     }
-    if (textDocs?.error) {
+    if (docs?.error) {
         return (
-            <p style={{ color: 'red' }}>{textDocs.error}</p>
+            <p style={{ color: 'red' }}>{docs.error}</p>
         )
     }
-    if (textDocs?.sharedTextDocuments === null) {
+    if (docs?.sharedDocuments === null) {
         return <p>Loading...</p>
     }
 
-    const handleEditDoc = (id: string | undefined) => {
-        navigate(`/textdocuments/${id}/edit`)
+    const handleEditDoc = (id: string | undefined, type: string) => {
+        navigate(`/${type.toLowerCase()}s/${id}/edit`)
     }
 
-    let sortedDocuments: ITextDocument[] = []
-    if (textDocs) {
-        sortedDocuments = [...textDocs?.sharedTextDocuments].sort((doc1, doc2) => {
+    let sortedDocuments: IDocument[] = []
+    if (docs) {
+        sortedDocuments = [...docs?.sharedDocuments].sort((doc1, doc2) => {
             if (sortTerm === 'created-desc') {
                 const time1 = doc1.createdAt ? new Date(doc1.createdAt).getTime() : 0
                 const time2 = doc2.createdAt ? new Date(doc2.createdAt).getTime() : 0
@@ -93,19 +93,19 @@ const SharedWithMePage = () => {
                     </thead>
                     <tbody>
                         {
-                            sortedDocuments.map((textDocument) => (
-                                <tr key={textDocument._id}>
-                                    <th scope='row' onClick={() => handleEditDoc(textDocument._id)}>
-                                        {textDocument.name}
+                            sortedDocuments.map((document) => (
+                                <tr key={document._id}>
+                                    <th scope='row' onClick={() => handleEditDoc(document._id, document.type)}>
+                                        {document.name}
                                     </th>
                                     <td>
                                         {
-                                            new Date(textDocument.createdAt!).toLocaleDateString('fi')
+                                            new Date(document.createdAt!).toLocaleDateString('fi')
                                         }
                                     </td>
                                     <td>
                                         {
-                                            new Date(textDocument.updatedAt!).toLocaleDateString('fi')
+                                            new Date(document.updatedAt!).toLocaleDateString('fi')
                                         }
                                     </td>
                                 </tr>

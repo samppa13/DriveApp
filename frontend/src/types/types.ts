@@ -3,15 +3,22 @@ interface ILock {
     lockTime: Date
 }
 
+export interface ISlide {
+    title: string
+    bullets: string[]
+}
+
 export interface IUser {
     _id: string
     username: string
 }
 
-export interface ITextDocument {
+export interface IDocument {
     _id?: string
     name: string
-    text: string
+    type: string
+    text?: string
+    slides?: ISlide[]
     user?: IUser
     permissions?: string[]
     viewToken?: string

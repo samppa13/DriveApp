@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { IDocument } from '../types/types'
 import { useParams } from 'react-router-dom'
 
-const SharedTextDocumentPage = () => {
+const SharedPresentationDocumentPage = () => {
     const [document, setDocument] = useState<IDocument | undefined>(undefined)
     const [error, setError] = useState<string>('')
 
@@ -15,7 +15,7 @@ const SharedTextDocumentPage = () => {
 
         const fetchDoc = async () => {
             try {
-                const response: Response = await fetch(`http://localhost:9000/api/textdocuments/${viewToken}/view`)
+                const response: Response = await fetch(`http://localhost:9000/api/presentationdocuments/${viewToken}/view`)
                 
                 const data = await response.json()
                 if (!response.ok) {
@@ -41,9 +41,24 @@ const SharedTextDocumentPage = () => {
     return (
         <div>
             <h2>{document.name}</h2>
-            <p>{document.text}</p>
+            <div>
+                {document.slides?.map((slide, slideId) => (
+                    <div key={slideId}>
+                        <h2>
+                            {slide.title}
+                        </h2>
+                        <ul>
+                            {slide.bullets.map((bullet, bulletId) => (
+                                <li key={bulletId}>
+                                    {bullet}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                ))}
+            </div>
         </div>
     )
 }
 
-export default SharedTextDocumentPage
+export default SharedPresentationDocumentPage

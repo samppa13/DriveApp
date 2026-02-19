@@ -1,13 +1,13 @@
 import type React from 'react'
-import type { ITextDocument } from '../types/types'
+import type { IDocument } from '../types/types'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 interface TextDocumentEditorProps {
-    document?: ITextDocument
+    document?: IDocument
     message: string
-    handleSave: (textDocument: ITextDocument) => void
-    handleDelete?: (id: string) => void
+    handleSave: (textDocument: IDocument) => void
+    handleDelete?: (id: string, type: string) => void
 }
 
 const TextDocumentEditor: React.FC<TextDocumentEditorProps> = ({ document, message, handleSave, handleDelete }) => {
@@ -22,6 +22,7 @@ const TextDocumentEditor: React.FC<TextDocumentEditorProps> = ({ document, messa
     }, [document])
 
     const id = document?._id
+    const docType = 'TextDocument'
 
     return (
         <div>
@@ -43,7 +44,7 @@ const TextDocumentEditor: React.FC<TextDocumentEditorProps> = ({ document, messa
                 id
                 && handleDelete
                 && (
-                    <button onClick={() => handleDelete(id)}>
+                    <button onClick={() => handleDelete(id, docType)}>
                         Delete
                     </button>
                 )
@@ -51,7 +52,7 @@ const TextDocumentEditor: React.FC<TextDocumentEditorProps> = ({ document, messa
             <button onClick={() => navigate('/')}>
                 Back to Home
             </button>
-            <button onClick={() => handleSave({ ...document, name, text })}>
+            <button onClick={() => handleSave({ ...document, name, text, type: docType })}>
                 Save
             </button>
             {

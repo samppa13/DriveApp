@@ -5,61 +5,61 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const auth_1 = require("../middleware/auth");
-const Text_1 = require("../models/document/Text");
 const mongoose_1 = __importDefault(require("mongoose"));
+const Presentation_1 = require("../models/document/Presentation");
 const router = (0, express_1.Router)();
 router.post('/', auth_1.verifyToken, async (request, response) => {
     try {
-        const { name, text } = request.body;
+        const { name, slides } = request.body;
         const userId = request.user?.id;
         if (!name) {
             response.status(400).json({ error: 'Document must have a name' });
             return;
         }
-        const newTextDocument = new Text_1.TextDocumentModel({
+        const newPresentationDocument = new Presentation_1.PresentationDocumentModel({
             name,
-            text,
+            slides,
             user: userId
         });
-        await newTextDocument.save();
-        response.status(200).json(newTextDocument);
+        await newPresentationDocument.save();
+        response.status(200).json(newPresentationDocument);
     }
     catch (error) {
-        response.status(500).json({ error: 'Error creating text document' });
+        response.status(500).json({ error: 'Error creating presentation document' });
     }
 });
 router.get('/:id', auth_1.verifyToken, async (request, response) => {
     try {
         const id = Array.isArray(request.params.id) ? request.params.id[0] : request.params.id;
         if (!mongoose_1.default.Types.ObjectId.isValid(id)) {
-            response.status(404).json({ error: 'Text document not found' });
+            response.status(404).json({ error: 'Presentation document not found' });
             return;
         }
-        const textDocument = await Text_1.TextDocumentModel.findOne({
+        const presentationDocument = await Presentation_1.PresentationDocumentModel.findOne({
             _id: id,
             $or: [
                 { user: request.user?.id },
                 { permissions: request.user?.id }
             ]
         });
-        if (!textDocument) {
-            response.status(404).json({ error: 'Text document not found' });
+        if (!presentationDocument) {
+            response.status(404).json({ error: 'Presentation document not found' });
             return;
         }
-        response.json(textDocument);
+        response.json(presentationDocument);
     }
     catch (error) {
-        response.status(500).json({ error: 'Error fetching text document' });
+        response.status(500).json({ error: 'Error fetching presentation document' });
     }
 });
 router.put('/:id', auth_1.verifyToken, async (request, response) => {
     try {
-        const { name, text } = request.body;
+        const { name, slides } = request.body;
         if (!name) {
-            response.status(400).json({ error: 'Text document must have a name' });
+            response.status(400).json({ error: 'Presentation document must have a name' });
             return;
         }
-        const updatedTextDocument = await Text_1.TextDocumentModel.findOneAndUpdate({
+        const updatedPresentationDocument = await Presentation_1.PresentationDocumentModel.findOneAndUpdate({
             _id: request.params.id,
             $and: [
                 {
@@ -75,46 +75,46 @@ router.put('/:id', auth_1.verifyToken, async (request, response) => {
                     ]
                 }
             ]
-        }, { name, text }, { new: true });
-        if (!updatedTextDocument) {
-            response.status(404).json({ error: 'Text document is locked by another user or does not found' });
+        }, { name, slides }, { new: true });
+        if (!updatedPresentationDocument) {
+            response.status(404).json({ error: 'Presentation document is locked by another user or does not found' });
             return;
         }
-        response.json(updatedTextDocument);
+        response.json(updatedPresentationDocument);
     }
     catch (error) {
-        response.status(500).json({ error: 'Error updating text document' });
+        response.status(500).json({ error: 'Error updating presentation document' });
     }
 });
 router.delete('/:id', auth_1.verifyToken, async (request, response) => {
     try {
-        const textDocument = await Text_1.TextDocumentModel.findOneAndDelete({
+        const presentationDocument = await Presentation_1.PresentationDocumentModel.findOneAndDelete({
             _id: request.params.id,
             user: request.user?.id
         });
-        if (!textDocument) {
-            response.status(404).json({ error: 'Text document not found' });
+        if (!presentationDocument) {
+            response.status(404).json({ error: 'Presentation document not found' });
             return;
         }
-        response.status(200).json({ message: 'Text document deleted successfully' });
+        response.status(200).json({ message: 'Presentation document deleted successfully' });
     }
     catch (error) {
-        response.status(500).json({ error: 'Error deleting text document' });
+        response.status(500).json({ error: 'Error deleting presentation document' });
     }
 });
 router.get('/:uuid/view', async (request, response) => {
     try {
-        const textDocument = await Text_1.TextDocumentModel.findOne({
+        const presentationDocument = await Presentation_1.PresentationDocumentModel.findOne({
             viewToken: request.params.uuid
         });
-        if (!textDocument) {
+        if (!presentationDocument) {
             response.status(400).json({ error: 'Document not found' });
             return;
         }
-        response.status(200).json(textDocument);
+        response.status(200).json(presentationDocument);
     }
     catch (error) {
-        response.status(500).json({ error: 'Error fetching text document' });
+        response.status(500).json({ error: 'Error fetching presentation document' });
     }
 });
 exports.default = router;

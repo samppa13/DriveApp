@@ -1,28 +1,31 @@
 import mongoose, { Document, Schema } from 'mongoose'
 
+type DocumentType = 'TextDocument' | 'PresentationDocument'
+
 interface ILock {
     user: mongoose.Types.ObjectId
     lockTime: Date
 }
 
-interface ITextDocument extends Document {
+interface IDocument extends Document {
     name: string
-    text: string
+    type: DocumentType
     user: mongoose.Types.ObjectId
     permissions: mongoose.Types.ObjectId[]
     viewToken: string | null
     lock: ILock | null
 }
 
-const textDocumentSchema: Schema = new Schema(
+const baseOptions = {
+    discriminatorKey: 'type',
+    timestamps: true
+}
+
+const documentSchema: Schema = new Schema(
     {
         name: {
             type: String,
             required: true
-        },
-        text: {
-            type: String,
-            default: ''
         },
         user: {
             type: mongoose.Schema.Types.ObjectId,
@@ -51,13 +54,16 @@ const textDocumentSchema: Schema = new Schema(
                 }
             },
             default: null
+        },
+        type: {
+            type: String,
+            required: true,
+            enum: ['TextDocument', 'PresentationDocument']
         }
     },
-    {
-        timestamps: true
-    }
+    baseOptions
 )
 
-const TextDocument: mongoose.Model<ITextDocument> = mongoose.model<ITextDocument>('TextDocument', textDocumentSchema)
+const DocumentModel: mongoose.Model<IDocument> = mongoose.model<IDocument>('Document', documentSchema)
 
-export { TextDocument, ITextDocument }
+export { DocumentModel, IDocument }

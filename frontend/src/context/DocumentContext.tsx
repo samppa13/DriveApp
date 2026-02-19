@@ -1,29 +1,29 @@
 import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { AuthContext } from './AuthContext'
-import type { ITextDocument } from '../types/types'
+import type { IDocument } from '../types/types'
 
-interface TextDocumentContextSettings {
-    ownedTextDocuments: ITextDocument[] | null
+interface DocumentContextSettings {
+    ownedDocuments: IDocument[] | null
     loading: boolean
     error: string
-    sharedTextDocuments: ITextDocument[] | null
-    fetchTextDocument: (docId: string) => Promise<ITextDocument>
-    createTextDocument: (textDocument: ITextDocument) => Promise<ITextDocument>
-    updateTextDocument: (textDocument: ITextDocument) => Promise<ITextDocument>
-    deleteTextDocument: (id: string) => Promise<string>
-    shareTextDocument: (docId: string, userId: string) => Promise<string>
+    sharedDocuments: IDocument[] | null
+    fetchDocument: (docId: string, type: string) => Promise<IDocument>
+    createDocument: (document: IDocument) => Promise<IDocument>
+    updateDocument: (document: IDocument) => Promise<IDocument>
+    deleteDocument: (id: string, type: string) => Promise<string>
+    shareDocument: (docId: string, userId: string) => Promise<string>
     createViewLink: (docId: string) => Promise<void>
-    addTextDocLock: (docId: string) => Promise<void>
-    deleteTextDocLock: (docId: string) => Promise<void>
+    addDocLock: (docId: string) => Promise<void>
+    deleteDocLock: (docId: string) => Promise<void>
 }
 
-export const TextDocumentContext = createContext<TextDocumentContextSettings | undefined>(undefined)
+export const DocumentContext = createContext<DocumentContextSettings | undefined>(undefined)
 
-export const TextDocumentProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [ownedTextDocuments, setOwnedTextDocuments] = useState<ITextDocument[] | null>(null)
+export const DocumentProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+    const [ownedDocuments, setOwnedDocuments] = useState<IDocument[] | null>(null)
     const [loading, setLoading] = useState<boolean>(true)
     const [error, setError] = useState<string>('')
-    const [sharedTextDocuments, setSharedTextDocuments] = useState<ITextDocument[] | null>(null)
+    const [sharedDocuments, setSharedDocuments] = useState<IDocument[] | null>(null)
 
     const auth = useContext(AuthContext)
 
@@ -36,7 +36,7 @@ export const TextDocumentProvider: React.FC<{ children: ReactNode }> = ({ childr
 
         const fetchData = async () => {
             try {
-                const response: Response = await fetch('http://localhost:9000/api/textdocuments', {
+                const response: Response = await fetch('http://localhost:9000/api/documents', {
                     method: 'GET',
                     signal: abortctrl.signal,
                     headers: {
@@ -46,12 +46,12 @@ export const TextDocumentProvider: React.FC<{ children: ReactNode }> = ({ childr
 
                 const data = await response.json()
                 if (!response.ok) {
-                    throw new Error(data.error || 'Error fetching text documents')
+                    throw new Error(data.error || 'Error fetching documents')
                 }
 
                 setError('')
-                setOwnedTextDocuments(data.ownedTextDocs)
-                setSharedTextDocuments(data.sharedTextDocs)
+                setOwnedDocuments(data.ownedDocs)
+                setSharedDocuments(data.sharedDocs)
                 setLoading(false)
             } catch (error: unknown) {
                 if (error instanceof Error) {
@@ -70,8 +70,8 @@ export const TextDocumentProvider: React.FC<{ children: ReactNode }> = ({ childr
         return () => abortctrl.abort()
     }, [auth.token])
 
-    const fetchTextDocument = async (docId: string) => {
-        const response: Response = await fetch(`http://localhost:9000/api/textdocuments/${docId}`, {
+    const fetchDocument = async (docId: string, type: string) => {
+        const response: Response = await fetch(`http://localhost:9000/api/${type.toLowerCase()}s/${docId}`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${auth.token}`
@@ -80,77 +80,77 @@ export const TextDocumentProvider: React.FC<{ children: ReactNode }> = ({ childr
 
         const data = await response.json()
         if (!response.ok) {
-            throw new Error(data.error || 'Error fetching text document')
+            throw new Error(data.error || 'Error fetching document')
         }
 
-        setOwnedTextDocuments((prevDocs) => prevDocs
+        setOwnedDocuments((prevDocs) => prevDocs
             ? prevDocs.map(
-                (textDoc) => textDoc._id === data._id ? data : textDoc
+                (doc) => doc._id === data._id ? data : doc
             )
             : prevDocs
         )
-        setSharedTextDocuments((prevDocs) => prevDocs
+        setSharedDocuments((prevDocs) => prevDocs
             ? prevDocs.map(
-                (textDoc) => textDoc._id === data._id ? data : textDoc
+                (doc) => doc._id === data._id ? data : doc
             )
             : prevDocs
         )
         return data
     }
 
-    const createTextDocument = async (textDocument: ITextDocument) => {
-        const response: Response = await fetch('http://localhost:9000/api/textdocuments', {
+    const createDocument = async (document: IDocument) => {
+        const response: Response = await fetch(`http://localhost:9000/api/${document.type.toLowerCase()}s`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${auth.token}`
             },
-            body: JSON.stringify(textDocument)
+            body: JSON.stringify(document)
         })
 
         const data = await response.json()
         if (!response.ok) {
-            throw new Error(data.error || 'Error creating text document')
+            throw new Error(data.error || 'Error creating document')
         }
 
-        setOwnedTextDocuments((prevDocs) =>
+        setOwnedDocuments((prevDocs) =>
             prevDocs ? [...prevDocs, data] : [data]
         )
         return data
     }
 
-    const updateTextDocument = async (textDocument: ITextDocument) => {
-        const response: Response = await fetch(`http://localhost:9000/api/textdocuments/${textDocument._id}`, {
+    const updateDocument = async (document: IDocument) => {
+        const response: Response = await fetch(`http://localhost:9000/api/${document.type.toLowerCase()}s/${document._id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${auth.token}`
             },
-            body: JSON.stringify(textDocument)
+            body: JSON.stringify(document)
         })
 
         const data = await response.json()
         if (!response.ok) {
-            throw new Error(data.error || 'Error updating text document')
+            throw new Error(data.error || 'Error updating document')
         }
 
-        setOwnedTextDocuments((prevDocs) => prevDocs
+        setOwnedDocuments((prevDocs) => prevDocs
             ? prevDocs.map(
-                (textDoc) => textDoc._id === data._id ? data : textDoc
+                (doc) => doc._id === data._id ? data : doc
             )
             : prevDocs
         )
-        setSharedTextDocuments((prevDocs) => prevDocs
+        setSharedDocuments((prevDocs) => prevDocs
             ? prevDocs.map(
-                (textDoc) => textDoc._id === data._id ? data : textDoc
+                (doc) => doc._id === data._id ? data : doc
             )
             : prevDocs
         )
         return data
     }
 
-    const deleteTextDocument = async (id: string) => {
-        const response: Response = await fetch(`http://localhost:9000/api/textdocuments/${id}`, {
+    const deleteDocument = async (id: string, type: string) => {
+        const response: Response = await fetch(`http://localhost:9000/api/${type.toLowerCase()}s/${id}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${auth.token}`
@@ -159,20 +159,20 @@ export const TextDocumentProvider: React.FC<{ children: ReactNode }> = ({ childr
 
         const data = await response.json()
         if (!response.ok) {
-            throw new Error(data.error || 'Error deleting text document')
+            throw new Error(data.error || 'Error deleting document')
         }
 
-        setOwnedTextDocuments((prevDocs) => prevDocs
+        setOwnedDocuments((prevDocs) => prevDocs
             ? prevDocs.filter(
-                (textDoc) => textDoc._id !== id
+                (doc) => doc._id !== id
             )
             : prevDocs
         )
         return data.message
     }
 
-    const shareTextDocument = async (docId: string, userId: string) => {
-        const response: Response = await fetch(`http://localhost:9000/api/textdocuments/${docId}/permissions`, {
+    const shareDocument = async (docId: string, userId: string) => {
+        const response: Response = await fetch(`http://localhost:9000/api/documents/${docId}/permissions`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -190,7 +190,7 @@ export const TextDocumentProvider: React.FC<{ children: ReactNode }> = ({ childr
     }
 
     const createViewLink = async (docId: string) => {
-        const response: Response = await fetch(`http://localhost:9000/api/textdocuments/${docId}/permissions/view`, {
+        const response: Response = await fetch(`http://localhost:9000/api/documents/${docId}/permissions/view`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${auth.token}`
@@ -202,11 +202,11 @@ export const TextDocumentProvider: React.FC<{ children: ReactNode }> = ({ childr
             throw new Error(data.error || 'Error creating share view link')
         }
 
-        setOwnedTextDocuments((prevDocs) => prevDocs
+        setOwnedDocuments((prevDocs) => prevDocs
             ? prevDocs.map(
-                (textDoc) => textDoc._id === docId
-                    ? { ...textDoc, viewToken: data }
-                    : textDoc
+                (doc) => doc._id === docId
+                    ? { ...doc, viewToken: data }
+                    : doc
             )
             : prevDocs
         )
@@ -214,8 +214,8 @@ export const TextDocumentProvider: React.FC<{ children: ReactNode }> = ({ childr
         return
     }
 
-    const addTextDocLock = async (docId: string) => {
-        const response: Response = await fetch(`http://localhost:9000/api/textdocuments/${docId}/lock`, {
+    const addDocLock = async (docId: string) => {
+        const response: Response = await fetch(`http://localhost:9000/api/documents/${docId}/lock`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${auth.token}`
@@ -228,8 +228,8 @@ export const TextDocumentProvider: React.FC<{ children: ReactNode }> = ({ childr
         }
     }
 
-    const deleteTextDocLock = async (docId: string) => {
-        const response: Response = await fetch(`http://localhost:9000/api/textdocuments/${docId}/lock`, {
+    const deleteDocLock = async (docId: string) => {
+        const response: Response = await fetch(`http://localhost:9000/api/documents/${docId}/lock`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${auth.token}`
@@ -238,26 +238,26 @@ export const TextDocumentProvider: React.FC<{ children: ReactNode }> = ({ childr
 
         const data = await response.json()
         if (!response.ok) {
-            throw new Error(data.error || 'Error releasing text document lock')
+            throw new Error(data.error || 'Error releasing document lock')
         }
     }
 
     return (
-        <TextDocumentContext.Provider value={{
-            ownedTextDocuments,
+        <DocumentContext.Provider value={{
+            ownedDocuments,
             loading,
             error,
-            sharedTextDocuments,
-            fetchTextDocument,
-            createTextDocument,
-            updateTextDocument,
-            deleteTextDocument,
-            shareTextDocument,
+            sharedDocuments,
+            fetchDocument,
+            createDocument,
+            updateDocument,
+            deleteDocument,
+            shareDocument,
             createViewLink,
-            addTextDocLock,
-            deleteTextDocLock
+            addDocLock,
+            deleteDocLock
         }}>
             { children }
-        </TextDocumentContext.Provider>
+        </DocumentContext.Provider>
     )
 }

@@ -2,37 +2,39 @@ import { useContext, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { DocumentContext } from '../context/DocumentContext'
 import type { IDocument } from '../types/types'
-import TextDocumentEditor from '../components/TextDocumentEditor'
+import PresentationDocumentEditor from '../components/PresentationDocumentEditor'
+import Slideshow from '../components/Slideshow'
 
-const TextDocumentEditorPage = () => {
+const PresentationDocumentEditorPage = () => {
     const [document, setDocument] = useState<IDocument | undefined>(undefined)
     const [notFound, setNotFound] = useState<boolean>(false)
     const [message, setMessage] = useState<string>('')
     const [isLockAdded, setIsLockAdded] = useState<boolean>(false)
     const [isFetching, setIsFetching] = useState<boolean>(true)
+    const [isSlideshow, setIsSlideshow] = useState<boolean>(false)
 
     const lockRef = useRef<boolean>(false)
     const { id } = useParams()
     const navigate = useNavigate()
     const docs = useContext(DocumentContext)
-    const docType = 'TextDocument'
+    const docType = 'PresentationDocument'
 
     useEffect(() => {
         if (!id || !docs || docs.loading) {
             return
         }
 
-        const fetchTextDoc = async () => {
+        const fetchPresentationDoc = async () => {
             try {
-                const textDocument: IDocument = await docs.fetchDocument(id, docType)
-                setDocument(textDocument)
+                const presentationDocument: IDocument = await docs.fetchDocument(id, docType)
+                setDocument(presentationDocument)
                 setNotFound(false)
 
                 await docs.addDocLock(id)
                 lockRef.current = true
                 setIsLockAdded(true)
             } catch (error: any) {
-                if (error.message === 'Text document not found') {
+                if (error.message === 'Presentation document not found') {
                     setNotFound(true)
                 }
                 setMessage(error.message)
@@ -41,7 +43,7 @@ const TextDocumentEditorPage = () => {
             }
         }
 
-        fetchTextDoc()
+        fetchPresentationDoc()
 
         return () => {
             const releaseLock = async () => {
@@ -59,7 +61,7 @@ const TextDocumentEditorPage = () => {
     }, [id, docs?.loading])
 
     useEffect(() => {
-        if (id && document && document.type !== 'TextDocument') {
+        if (id && document && document.type !== 'PresentationDocument') {
             navigate(`/${document.type.toLowerCase()}s/${id}`)
         }
     }, [document])
@@ -80,6 +82,20 @@ const TextDocumentEditorPage = () => {
         return () => clearInterval(intervalId)
     }, [id, docs, isLockAdded, document])
 
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            if (!window.document.fullscreenElement) {
+                setIsSlideshow(false)
+            }
+        }
+
+        window.document.addEventListener('fullscreenchange', handleFullscreenChange)
+
+        return () => {
+            window.document.removeEventListener('fullscreenchange', handleFullscreenChange)
+        }
+    }, [])
+
     const handleSave = async (doc: IDocument) => {
         if (!doc.name) {
             setMessage('Document must have a name')
@@ -88,12 +104,12 @@ const TextDocumentEditorPage = () => {
         try {
             if (!id && docs) {
                 const createdDoc = await docs.createDocument(doc)
-                navigate(`/textdocuments/${createdDoc._id}/edit`)
+                navigate(`/presentationdocuments/${createdDoc._id}/edit`)
             }
             else if (docs) {
                 const updatedDoc = await docs.updateDocument(doc)
                 setDocument(updatedDoc)
-                setMessage('Text document saved successfully')
+                setMessage('Presentation document saved successfully')
                 setTimeout(() => {
                     setMessage('')
                 }, 2000)
@@ -119,11 +135,33 @@ const TextDocumentEditorPage = () => {
         }
     }
 
+    const handleStartSlideshow = async () => {
+        if (!document || document.type !== 'PresentationDocument') {
+            return
+        }
+        try {
+            if (window.document.documentElement.requestFullscreen) {
+                await window.document.documentElement.requestFullscreen()
+            }
+            setIsSlideshow(true)
+        } catch (error) {
+            console.error('Fullscreen failed:', error)
+        }
+    }
+
+    if (isSlideshow && document && document.type === 'PresentationDocument' && document.slides) {
+        return (
+            <Slideshow
+                slides={document.slides}
+            />
+        )
+    }
     if (!id) {
         return (
-            <TextDocumentEditor
+            <PresentationDocumentEditor
                 message={message}
                 handleSave={handleSave}
+                handleStartSlideshow={handleStartSlideshow}
             />
         )
     }
@@ -131,7 +169,7 @@ const TextDocumentEditorPage = () => {
         return (
             <div>
                 {
-                    message === 'Text document deleted successfully'
+                    message === 'Presentation document deleted successfully'
                     ? (
                         <p style={{ color: 'green' }}>{message}</p>
                     ) : (
@@ -155,13 +193,14 @@ const TextDocumentEditorPage = () => {
     ) ?? false
 
     return (
-        <TextDocumentEditor
-            message={message}
+        <PresentationDocumentEditor
             document={document}
+            message={message}
             handleSave={handleSave}
             handleDelete={isOwner ? handleDelete : undefined}
+            handleStartSlideshow={handleStartSlideshow}
         />
     )
 }
 
-export default TextDocumentEditorPage
+export default PresentationDocumentEditorPage
