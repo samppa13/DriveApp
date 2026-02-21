@@ -14,6 +14,7 @@ interface IDocument extends Document {
     permissions: mongoose.Types.ObjectId[]
     viewToken: string | null
     lock: ILock | null
+    isDeleted: boolean
 }
 
 const baseOptions = {
@@ -59,6 +60,10 @@ const documentSchema: Schema = new Schema(
             type: String,
             required: true,
             enum: ['TextDocument', 'PresentationDocument']
+        },
+        isDeleted: {
+            type: Boolean,
+            default: false
         }
     },
     baseOptions

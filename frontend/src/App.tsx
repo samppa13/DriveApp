@@ -11,6 +11,7 @@ import SharedWithMePage from './pages/SharedWithMePage'
 import SharedTextDocumentPage from './pages/SharedTextDocumentPage'
 import PresentationDocumentEditorPage from './pages/PresentationDocumentEditorPage'
 import SharedPresentationDocumentPage from './pages/SharedPresentationDocumentPage'
+import TrashPage from './pages/TrashPage'
 
 const App = () => {
   return (
@@ -26,6 +27,7 @@ const App = () => {
               <Route path='/textdocuments/:id/edit' element={<TextDocumentEditorPage />} />
               <Route path='/presentationdocuments/new' element={<PresentationDocumentEditorPage />} />
               <Route path='/presentationdocuments/:id/edit' element={<PresentationDocumentEditorPage />} />
+              <Route path='/trash' element={<TrashPage />} />
             </Route>
             <Route path='/login' element={<LoginPage />} />
             <Route path='/register' element={<RegisterPage />} />

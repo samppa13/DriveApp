@@ -1,13 +1,14 @@
 import { useContext, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { DocumentContext } from '../context/DocumentContext'
-import type { IDocument } from '../types/types'
+import type { IDocument, INewDocument } from '../types/types'
 import TextDocumentEditor from '../components/TextDocumentEditor'
 
 const TextDocumentEditorPage = () => {
     const [document, setDocument] = useState<IDocument | undefined>(undefined)
     const [notFound, setNotFound] = useState<boolean>(false)
     const [message, setMessage] = useState<string>('')
+    const [errorMessage, setErrorMessage] = useState<string>('')
     const [isLockAdded, setIsLockAdded] = useState<boolean>(false)
     const [isFetching, setIsFetching] = useState<boolean>(true)
 
@@ -16,6 +17,28 @@ const TextDocumentEditorPage = () => {
     const navigate = useNavigate()
     const docs = useContext(DocumentContext)
     const docType = 'TextDocument'
+
+    useEffect(() => {
+        if (!message) {
+            return
+        }
+
+        const timer = setTimeout(() => {
+            setMessage('')
+        }, 2000)
+        return () => clearTimeout(timer)
+    }, [message])
+
+    useEffect(() => {
+        if (!errorMessage) {
+            return
+        }
+
+        const timer = setTimeout(() => {
+            setErrorMessage('')
+        }, 2000)
+        return () => clearTimeout(timer)
+    }, [errorMessage])
 
     useEffect(() => {
         if (!id || !docs || docs.loading) {
@@ -35,7 +58,7 @@ const TextDocumentEditorPage = () => {
                 if (error.message === 'Text document not found') {
                     setNotFound(true)
                 }
-                setMessage(error.message)
+                setErrorMessage(error.message)
             } finally {
                 setIsFetching(false)
             }
@@ -73,16 +96,16 @@ const TextDocumentEditorPage = () => {
             try {
                 await docs.addDocLock(id)
             } catch (error: any) {
-                setMessage(error.message)
+                setErrorMessage(error.message)
             }
         }, 20000)
 
         return () => clearInterval(intervalId)
     }, [id, docs, isLockAdded, document])
 
-    const handleSave = async (doc: IDocument) => {
+    const handleSave = async (doc: INewDocument) => {
         if (!doc.name) {
-            setMessage('Document must have a name')
+            setErrorMessage('Document must have a name')
             return
         }
         try {
@@ -94,28 +117,25 @@ const TextDocumentEditorPage = () => {
                 const updatedDoc = await docs.updateDocument(doc)
                 setDocument(updatedDoc)
                 setMessage('Text document saved successfully')
-                setTimeout(() => {
-                    setMessage('')
-                }, 2000)
             }
         } catch (error: any) {
-            setMessage(error.message || 'An unknown error occurred')
+            setErrorMessage(error.message || 'An unknown error occurred')
         }
     }
 
-    const handleDelete = async (id: string, type: string) => {
+    const handleDelete = async (id: string) => {
         if (!docs) {
             return
         }
 
         try {
-            const mess = await docs.deleteDocument(id, type)
+            const mess = await docs.deleteDocument(id)
             setMessage(mess)
             setTimeout(() => {
                 navigate('/')
             }, 2000)
         } catch (error: any) {
-            setMessage(error.message)
+            setErrorMessage(error.message)
         }
     }
 
@@ -123,6 +143,7 @@ const TextDocumentEditorPage = () => {
         return (
             <TextDocumentEditor
                 message={message}
+                errorMessage={errorMessage}
                 handleSave={handleSave}
             />
         )
@@ -146,7 +167,7 @@ const TextDocumentEditorPage = () => {
     if (isFetching || docs?.loading) {
         return <p>Loading...</p>
     }
-    if (message === 'Document is currently locked by another user') {
+    if (errorMessage === 'Document is currently locked by another user') {
         return <p style={{ color: 'red' }}>{message}</p>
     }
 
@@ -156,8 +177,9 @@ const TextDocumentEditorPage = () => {
 
     return (
         <TextDocumentEditor
-            message={message}
             document={document}
+            message={message}
+            errorMessage={errorMessage}
             handleSave={handleSave}
             handleDelete={isOwner ? handleDelete : undefined}
         />

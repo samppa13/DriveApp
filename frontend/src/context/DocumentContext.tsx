@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { AuthContext } from './AuthContext'
-import type { IDocument } from '../types/types'
+import type { IDocument, INewDocument } from '../types/types'
 
 interface DocumentContextSettings {
     ownedDocuments: IDocument[] | null
@@ -8,10 +8,12 @@ interface DocumentContextSettings {
     error: string
     sharedDocuments: IDocument[] | null
     fetchDocument: (docId: string, type: string) => Promise<IDocument>
-    createDocument: (document: IDocument) => Promise<IDocument>
-    updateDocument: (document: IDocument) => Promise<IDocument>
-    deleteDocument: (id: string, type: string) => Promise<string>
+    createDocument: (document: INewDocument) => Promise<IDocument>
+    updateDocument: (document: INewDocument) => Promise<IDocument>
+    deleteDocument: (id: string) => Promise<string>
     shareDocument: (docId: string, userId: string) => Promise<string>
+    restoreDocument: (docId: string) => Promise<IDocument>
+    restoreDocuments: (docs: IDocument[]) => Promise<string>
     createViewLink: (docId: string) => Promise<void>
     addDocLock: (docId: string) => Promise<void>
     deleteDocLock: (docId: string) => Promise<void>
@@ -98,7 +100,7 @@ export const DocumentProvider: React.FC<{ children: ReactNode }> = ({ children }
         return data
     }
 
-    const createDocument = async (document: IDocument) => {
+    const createDocument = async (document: INewDocument) => {
         const response: Response = await fetch(`http://localhost:9000/api/${document.type.toLowerCase()}s`, {
             method: 'POST',
             headers: {
@@ -119,7 +121,7 @@ export const DocumentProvider: React.FC<{ children: ReactNode }> = ({ children }
         return data
     }
 
-    const updateDocument = async (document: IDocument) => {
+    const updateDocument = async (document: INewDocument) => {
         const response: Response = await fetch(`http://localhost:9000/api/${document.type.toLowerCase()}s/${document._id}`, {
             method: 'PUT',
             headers: {
@@ -149,8 +151,8 @@ export const DocumentProvider: React.FC<{ children: ReactNode }> = ({ children }
         return data
     }
 
-    const deleteDocument = async (id: string, type: string) => {
-        const response: Response = await fetch(`http://localhost:9000/api/${type.toLowerCase()}s/${id}`, {
+    const deleteDocument = async (id: string) => {
+        const response: Response = await fetch(`http://localhost:9000/api/documents/${id}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${auth.token}`
@@ -185,6 +187,48 @@ export const DocumentProvider: React.FC<{ children: ReactNode }> = ({ children }
         if (!response.ok) {
             throw new Error(data.error || 'Error updating permissions')
         }
+
+        return data.message
+    }
+
+    const restoreDocument = async (docId: string) => {
+        const response: Response = await fetch(`http://localhost:9000/api/documents/${docId}/restore`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${auth.token}`
+            }
+        })
+
+        const data = await response.json()
+        if (!response.ok) {
+            throw new Error(data.error || 'Error restoring document')
+        }
+
+        setOwnedDocuments((prevDocs) => prevDocs
+            ? prevDocs.concat(data)
+            : [data]
+        )
+
+        return data
+    }
+
+    const restoreDocuments = async (docs: IDocument[]) => {
+        const response: Response = await fetch('http://localhost:9000/api/documents/trash/restore', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${auth.token}`
+            }
+        })
+
+        const data = await response.json()
+        if (!response.ok) {
+            throw new Error(data.error || 'Error restoring documents')
+        }
+
+        setOwnedDocuments((prevDocs) => prevDocs
+            ? [...prevDocs, ...docs]
+            : [...docs]
+        )
 
         return data.message
     }
@@ -253,6 +297,8 @@ export const DocumentProvider: React.FC<{ children: ReactNode }> = ({ children }
             updateDocument,
             deleteDocument,
             shareDocument,
+            restoreDocument,
+            restoreDocuments,
             createViewLink,
             addDocLock,
             deleteDocLock

@@ -37,6 +37,7 @@ router.get('/:id', auth_1.verifyToken, async (request, response) => {
         }
         const textDocument = await Text_1.TextDocumentModel.findOne({
             _id: id,
+            isDeleted: false,
             $or: [
                 { user: request.user?.id },
                 { permissions: request.user?.id }
@@ -61,6 +62,7 @@ router.put('/:id', auth_1.verifyToken, async (request, response) => {
         }
         const updatedTextDocument = await Text_1.TextDocumentModel.findOneAndUpdate({
             _id: request.params.id,
+            isDeleted: false,
             $and: [
                 {
                     $or: [
@@ -86,26 +88,11 @@ router.put('/:id', auth_1.verifyToken, async (request, response) => {
         response.status(500).json({ error: 'Error updating text document' });
     }
 });
-router.delete('/:id', auth_1.verifyToken, async (request, response) => {
-    try {
-        const textDocument = await Text_1.TextDocumentModel.findOneAndDelete({
-            _id: request.params.id,
-            user: request.user?.id
-        });
-        if (!textDocument) {
-            response.status(404).json({ error: 'Text document not found' });
-            return;
-        }
-        response.status(200).json({ message: 'Text document deleted successfully' });
-    }
-    catch (error) {
-        response.status(500).json({ error: 'Error deleting text document' });
-    }
-});
 router.get('/:uuid/view', async (request, response) => {
     try {
         const textDocument = await Text_1.TextDocumentModel.findOne({
-            viewToken: request.params.uuid
+            viewToken: request.params.uuid,
+            isDeleted: false
         });
         if (!textDocument) {
             response.status(400).json({ error: 'Document not found' });

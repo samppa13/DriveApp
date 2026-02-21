@@ -42,6 +42,7 @@ router.get('/:id', verifyToken, async (request: AuthRequest, response: Response)
 
         const presentationDocument: IPresentationDocument | null = await PresentationDocumentModel.findOne({
             _id: id,
+            isDeleted: false,
             $or: [
                 { user: request.user?.id },
                 { permissions: request.user?.id }
@@ -69,6 +70,7 @@ router.put('/:id', verifyToken, async (request: AuthRequest, response: Response)
         const updatedPresentationDocument: IPresentationDocument | null = await PresentationDocumentModel.findOneAndUpdate(
             {
                 _id: request.params.id,
+                isDeleted: false,
                 $and: [
                     {
                         $or: [
@@ -98,27 +100,11 @@ router.put('/:id', verifyToken, async (request: AuthRequest, response: Response)
     }
 })
 
-router.delete('/:id', verifyToken, async (request: AuthRequest, response: Response) => {
-    try {
-        const presentationDocument: IPresentationDocument | null = await PresentationDocumentModel.findOneAndDelete({
-            _id: request.params.id,
-            user: request.user?.id
-        })
-        if (!presentationDocument) {
-            response.status(404).json({ error: 'Presentation document not found' })
-            return
-        }
-
-        response.status(200).json({ message: 'Presentation document deleted successfully' })
-    } catch (error) {
-        response.status(500).json({ error: 'Error deleting presentation document' })
-    }
-})
-
 router.get('/:uuid/view', async (request: Request, response: Response) => {
     try {
         const presentationDocument: IPresentationDocument | null = await PresentationDocumentModel.findOne({
-            viewToken: request.params.uuid
+            viewToken: request.params.uuid,
+            isDeleted: false
         })
         if (!presentationDocument) {
             response.status(400).json({ error: 'Document not found' })

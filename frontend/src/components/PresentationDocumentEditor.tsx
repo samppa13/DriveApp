@@ -1,17 +1,18 @@
 import type React from 'react'
-import type { IDocument, ISlide } from '../types/types'
+import type { IDocument, INewDocument, ISlide } from '../types/types'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 interface PresentationDocumentEditorProps {
     document?: IDocument
     message: string
-    handleSave: (presentationDocument: IDocument) => void
-    handleDelete?: (id: string, type: string) => void
+    errorMessage: string
+    handleSave: (presentationDocument: INewDocument) => void
+    handleDelete?: (id: string) => void
     handleStartSlideshow: () => void
 }
 
-const PresentationDocumentEditor: React.FC<PresentationDocumentEditorProps> = ({ document, message, handleSave, handleDelete, handleStartSlideshow }) => {
+const PresentationDocumentEditor: React.FC<PresentationDocumentEditorProps> = ({ document, message, errorMessage, handleSave, handleDelete, handleStartSlideshow }) => {
     const [name, setName] = useState<string>(document?.name ?? '')
     const [slides, setSlides] = useState<ISlide[]>(document?.slides ?? [])
 
@@ -141,7 +142,7 @@ const PresentationDocumentEditor: React.FC<PresentationDocumentEditorProps> = ({
                 id
                 && handleDelete
                 && (
-                    <button onClick={() => handleDelete(id, docType)}>
+                    <button onClick={() => handleDelete(id)}>
                         Delete
                     </button>
                 )
@@ -159,14 +160,14 @@ const PresentationDocumentEditor: React.FC<PresentationDocumentEditorProps> = ({
             )}
             {
                 message
-                && <p
-                    style={{ color:
-                        (message === 'Text document deleted successfully' || message === 'Text document saved successfully')
-                        ? 'green'
-                        : 'red'
-                    }}
-                >
+                && <p style={{ color: 'green' }}>
                     {message}
+                </p>
+            }
+            {
+                errorMessage
+                && <p style={{ color: 'red' }}>
+                    {errorMessage}
                 </p>
             }
         </div>

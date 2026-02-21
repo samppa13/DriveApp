@@ -14,6 +14,21 @@ export interface IUser {
 }
 
 export interface IDocument {
+    _id: string
+    name: string
+    type: string
+    text?: string
+    slides?: ISlide[]
+    user?: IUser
+    permissions?: string[]
+    viewToken?: string
+    createdAt?: Date
+    updatedAt?: Date
+    lock?: ILock
+    isDeleted?: boolean
+}
+
+export interface INewDocument {
     _id?: string
     name: string
     type: string
@@ -25,4 +40,5 @@ export interface IDocument {
     createdAt?: Date
     updatedAt?: Date
     lock?: ILock
+    isDeleted?: boolean
 }

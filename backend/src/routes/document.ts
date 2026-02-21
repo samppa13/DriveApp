@@ -16,10 +16,12 @@ const LOCK_TIMEOUT = 2 * 60 * 1000
 router.get('/', verifyToken, async (request: AuthRequest, response: Response) => {
     try {
         const ownedDocs: IDocument[] = await DocumentModel.find({
-            user: request.user?.id
+            user: request.user?.id,
+            isDeleted: false
         })
         const sharedDocs: IDocument[] = await DocumentModel.find({
-            permissions: request.user?.id
+            permissions: request.user?.id,
+            isDeleted: false
         }).populate('user', 'id username')
 
         response.status(200).json({
@@ -28,6 +30,110 @@ router.get('/', verifyToken, async (request: AuthRequest, response: Response) =>
         })
     } catch (error) {
         response.status(500).json({ error: 'Error fetching documents'})
+    }
+})
+
+router.get('/trash', verifyToken, async (request: AuthRequest, response: Response) => {
+    try {
+        const documents: IDocument[] = await DocumentModel.find({
+            user: request.user?.id,
+            isDeleted: true
+        })
+
+        response.status(200).json(documents)
+    } catch (error) {
+        response.status(500).json({ error: 'Error fetching trash' })
+    }
+})
+
+router.post('/trash/restore', verifyToken, async (request: AuthRequest, response: Response) => {
+    try {
+        await DocumentModel.updateMany(
+            {
+                user: request.user?.id,
+                isDeleted: true
+            },
+            { isDeleted: false }
+        )
+
+        response.status(200).json({ message: 'Documents restored successfully' })
+    } catch (error) {
+        response.status(500).json({ error: 'Error restoring documents'})
+    }
+})
+
+router.delete('/trash/empty', verifyToken, async (request: AuthRequest, response: Response) => {
+    try {
+        await DocumentModel.deleteMany({
+            user: request.user?.id,
+            isDeleted: true
+        })
+
+        response.status(200).json({ message: 'Trash emptied successfully' })
+    } catch (error) {
+        response.status(500).json({ error: 'Error emptying trash' })
+    }
+})
+
+router.delete('/:id', verifyToken, async (request: AuthRequest, response: Response) => {
+    try {
+        const updatedDocument: IDocument | null = await DocumentModel.findOneAndUpdate(
+            {
+                _id: request.params.id,
+                user: request.user?.id,
+                isDeleted: false
+            },
+            { isDeleted: true },
+            { new: true }
+        )
+        if (!updatedDocument) {
+            response.status(404).json({ error: 'Document not found' })
+            return
+        }
+
+        response.status(200).json({ message: 'Document moved to trash successfully' })
+    } catch (error) {
+        response.status(500).json({ error: 'Error deleting document' })
+    }
+})
+
+router.delete('/:id/permanent', verifyToken, async (request: AuthRequest, response: Response) => {
+    try {
+        const document: IDocument | null = await DocumentModel.findOneAndDelete({
+            _id: request.params.id,
+            user: request.user?.id,
+            isDeleted: true
+        })
+        if (!document) {
+            response.status(404).json({ error: 'Document not found' })
+            return
+        }
+
+        response.status(200).json({ message: 'Document deleted successfully' })
+    } catch (error) {
+        response.status(500).json({ error: 'Error deleting document' })
+    }
+})
+
+router.post('/:id/restore', verifyToken, async (request: AuthRequest, response: Response) => {
+    try {
+        const updatedDocument: IDocument | null = await DocumentModel.findOneAndUpdate(
+            {
+                _id: request.params.id,
+                user: request.user?.id,
+                isDeleted: true
+            },
+            { isDeleted: false },
+            { new: true }
+        )
+        if (!updatedDocument) {
+            response.status(404).json({ error: 'Document not found' })
+            return
+        }
+
+        response.status(200).json(updatedDocument)
+    } catch (error) {
+        response.status(500).json({ error: 'Error restoring document' })
     }
 })
 
@@ -50,7 +156,8 @@ router.put('/:id/permissions', verifyToken, async (request: AuthRequest, respons
 
         const document: IDocument | null = await DocumentModel.findOne({
             _id: request.params.id,
-            user: request.user?.id
+            user: request.user?.id,
+            isDeleted: false
         })
         if (!document) {
             response.status(404).json({ error: 'Document not found'})
@@ -73,7 +180,8 @@ router.put('/:id/permissions/view', verifyToken, async (request: AuthRequest, re
     try {
         const updatedDocument: IDocument | null = await DocumentModel.findOne({
             _id: request.params.id,
-            user: request.user?.id
+            user: request.user?.id,
+            isDeleted: false
         })
         if (!updatedDocument) {
             response.status(404).json({ error: 'Document not found' })
@@ -98,6 +206,7 @@ router.put('/:id/lock', verifyToken, async (request: AuthRequest, response: Resp
     try {
         const document: IDocument | null = await DocumentModel.findOne({
             _id: request.params.id,
+            isDeleted: false,
             $or: [
                 { user: request.user?.id },
                 { permissions: request.user?.id }
@@ -131,6 +240,7 @@ router.delete('/:id/lock', verifyToken, async (request: AuthRequest, response: R
     try {
         const document: IDocument | null = await DocumentModel.findOne({
             _id: request.params.id,
+            isDeleted: false,
             $or: [
                 { user: request.user?.id },
                 { permissions: request.user?.id }

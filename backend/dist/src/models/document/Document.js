@@ -76,6 +76,10 @@ const documentSchema = new mongoose_1.Schema({
         type: String,
         required: true,
         enum: ['TextDocument', 'PresentationDocument']
+    },
+    isDeleted: {
+        type: Boolean,
+        default: false
     }
 }, baseOptions);
 const DocumentModel = mongoose_1.default.model('Document', documentSchema);

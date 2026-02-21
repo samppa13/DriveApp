@@ -1,7 +1,7 @@
 import { useContext, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { DocumentContext } from '../context/DocumentContext'
-import type { IDocument } from '../types/types'
+import type { IDocument, INewDocument } from '../types/types'
 import PresentationDocumentEditor from '../components/PresentationDocumentEditor'
 import Slideshow from '../components/Slideshow'
 
@@ -9,6 +9,7 @@ const PresentationDocumentEditorPage = () => {
     const [document, setDocument] = useState<IDocument | undefined>(undefined)
     const [notFound, setNotFound] = useState<boolean>(false)
     const [message, setMessage] = useState<string>('')
+    const [errorMessage, setErrorMessage] = useState<string>('')
     const [isLockAdded, setIsLockAdded] = useState<boolean>(false)
     const [isFetching, setIsFetching] = useState<boolean>(true)
     const [isSlideshow, setIsSlideshow] = useState<boolean>(false)
@@ -18,6 +19,28 @@ const PresentationDocumentEditorPage = () => {
     const navigate = useNavigate()
     const docs = useContext(DocumentContext)
     const docType = 'PresentationDocument'
+
+    useEffect(() => {
+        if (!message) {
+            return
+        }
+
+        const timer = setTimeout(() => {
+            setMessage('')
+        }, 2000)
+        return () => clearTimeout(timer)
+    }, [message])
+
+    useEffect(() => {
+        if (!errorMessage) {
+            return
+        }
+
+        const timer = setTimeout(() => {
+            setErrorMessage('')
+        }, 2000)
+        return () => clearTimeout(timer)
+    }, [errorMessage])
 
     useEffect(() => {
         if (!id || !docs || docs.loading) {
@@ -37,7 +60,7 @@ const PresentationDocumentEditorPage = () => {
                 if (error.message === 'Presentation document not found') {
                     setNotFound(true)
                 }
-                setMessage(error.message)
+                setErrorMessage(error.message)
             } finally {
                 setIsFetching(false)
             }
@@ -75,7 +98,7 @@ const PresentationDocumentEditorPage = () => {
             try {
                 await docs.addDocLock(id)
             } catch (error: any) {
-                setMessage(error.message)
+                setErrorMessage(error.message)
             }
         }, 20000)
 
@@ -96,9 +119,9 @@ const PresentationDocumentEditorPage = () => {
         }
     }, [])
 
-    const handleSave = async (doc: IDocument) => {
+    const handleSave = async (doc: INewDocument) => {
         if (!doc.name) {
-            setMessage('Document must have a name')
+            setErrorMessage('Document must have a name')
             return
         }
         try {
@@ -115,23 +138,23 @@ const PresentationDocumentEditorPage = () => {
                 }, 2000)
             }
         } catch (error: any) {
-            setMessage(error.message || 'An unknown error occurred')
+            setErrorMessage(error.message || 'An unknown error occurred')
         }
     }
 
-    const handleDelete = async (id: string, type: string) => {
+    const handleDelete = async (id: string) => {
         if (!docs) {
             return
         }
 
         try {
-            const mess = await docs.deleteDocument(id, type)
+            const mess = await docs.deleteDocument(id)
             setMessage(mess)
             setTimeout(() => {
                 navigate('/')
             }, 2000)
         } catch (error: any) {
-            setMessage(error.message)
+            setErrorMessage(error.message)
         }
     }
 
@@ -160,6 +183,7 @@ const PresentationDocumentEditorPage = () => {
         return (
             <PresentationDocumentEditor
                 message={message}
+                errorMessage={errorMessage}
                 handleSave={handleSave}
                 handleStartSlideshow={handleStartSlideshow}
             />
@@ -184,7 +208,7 @@ const PresentationDocumentEditorPage = () => {
     if (isFetching || docs?.loading) {
         return <p>Loading...</p>
     }
-    if (message === 'Document is currently locked by another user') {
+    if (errorMessage === 'Document is currently locked by another user') {
         return <p style={{ color: 'red' }}>{message}</p>
     }
 
@@ -196,6 +220,7 @@ const PresentationDocumentEditorPage = () => {
         <PresentationDocumentEditor
             document={document}
             message={message}
+            errorMessage={errorMessage}
             handleSave={handleSave}
             handleDelete={isOwner ? handleDelete : undefined}
             handleStartSlideshow={handleStartSlideshow}

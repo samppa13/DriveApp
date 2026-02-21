@@ -32,6 +32,11 @@ const Header = () => {
                                     Shared with me
                                 </Link>
                             </li>
+                            <li>
+                                <Link to='/trash'>
+                                    Trash
+                                </Link>
+                            </li>
                         </>
                     )
                     : (

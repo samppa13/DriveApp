@@ -1,16 +1,17 @@
 import type React from 'react'
-import type { IDocument } from '../types/types'
+import type { IDocument, INewDocument } from '../types/types'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 interface TextDocumentEditorProps {
     document?: IDocument
     message: string
-    handleSave: (textDocument: IDocument) => void
-    handleDelete?: (id: string, type: string) => void
+    errorMessage: string
+    handleSave: (textDocument: INewDocument) => void
+    handleDelete?: (id: string) => void
 }
 
-const TextDocumentEditor: React.FC<TextDocumentEditorProps> = ({ document, message, handleSave, handleDelete }) => {
+const TextDocumentEditor: React.FC<TextDocumentEditorProps> = ({ document, message, errorMessage, handleSave, handleDelete }) => {
     const [name, setName] = useState<string>(document?.name ?? '')
     const [text, setText] = useState<string>(document?.text ?? '')
 
@@ -44,7 +45,7 @@ const TextDocumentEditor: React.FC<TextDocumentEditorProps> = ({ document, messa
                 id
                 && handleDelete
                 && (
-                    <button onClick={() => handleDelete(id, docType)}>
+                    <button onClick={() => handleDelete(id)}>
                         Delete
                     </button>
                 )
@@ -57,14 +58,14 @@ const TextDocumentEditor: React.FC<TextDocumentEditorProps> = ({ document, messa
             </button>
             {
                 message
-                && <p
-                    style={{ color:
-                        (message === 'Text document deleted successfully' || message === 'Text document saved successfully')
-                        ? 'green'
-                        : 'red'
-                    }}
-                >
+                && <p style={{ color: 'green' }}>
                     {message}
+                </p>
+            }
+            {
+                errorMessage
+                && <p style={{ color: 'red' }}>
+                    {errorMessage}
                 </p>
             }
         </div>

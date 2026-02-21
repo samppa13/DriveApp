@@ -11,6 +11,7 @@ interface ISelectedUser {
 
 const MyDrive = () => {
     const [message, setMessage] = useState<string>('')
+    const [errorMessage, setErrorMessage] = useState<string>('')
     const [users, setUsers] = useState<IUser[]>([])
     const [selectedUsers, setSelectedUsers] = useState<ISelectedUser[]>([])
     const [sortTerm, setSortTerm] = useState<string>('created-desc')
@@ -32,6 +33,17 @@ const MyDrive = () => {
     }, [message])
 
     useEffect(() => {
+        if (!errorMessage) {
+            return
+        }
+
+        const timer = setTimeout(() => {
+            setErrorMessage('')
+        }, 2000)
+        return () => clearTimeout(timer)
+    }, [errorMessage])
+
+    useEffect(() => {
         const fetchUsers = async () => {
             try {
                 const response: Response = await fetch('http://localhost:9000/api/users', {
@@ -50,7 +62,7 @@ const MyDrive = () => {
                     (user: IUser) => user._id !== auth.user?._id
                 ))
             } catch (error: any) {
-                setMessage(error.message)
+                setErrorMessage(error.message)
             }
         }
 
@@ -75,9 +87,9 @@ const MyDrive = () => {
         navigate(`/${type.toLowerCase()}s/${id}/edit`)
     }
 
-    const handleDeleteDoc = async (id: string | undefined, type: string) => {
+    const handleDeleteDoc = async (id: string | undefined) => {
         if (!id) {
-            setMessage('Id is undefined')
+            setErrorMessage('Id is undefined')
             return
         }
         if (!docs) {
@@ -85,16 +97,16 @@ const MyDrive = () => {
         }
 
         try {
-            const mess = await docs.deleteDocument(id, type)
+            const mess = await docs.deleteDocument(id)
             setMessage(mess)
         } catch (error: any) {
-            setMessage(error.message)
+            setErrorMessage(error.message)
         }
     }
 
     const handleShareDoc = async (docId: string | undefined) => {
         if (!docId) {
-            setMessage('Text document id is undefined')
+            setErrorMessage('Text document id is undefined')
             return
         }
 
@@ -102,7 +114,7 @@ const MyDrive = () => {
             (item) => item.docId === docId
         )
         if (!selectedUser) {
-            setMessage('Please select a user to share with')
+            setErrorMessage('Please select a user to share with')
             return
         }
 
@@ -117,7 +129,7 @@ const MyDrive = () => {
                 (item) => item.docId !== docId
             ))
         } catch (error: any) {
-            setMessage(error.message)
+            setErrorMessage(error.message)
         }
     }
 
@@ -140,7 +152,7 @@ const MyDrive = () => {
 
     const handleCreateViewLink = async (docId: string | undefined) => {
         if (!docId) {
-            setMessage('Text document id is undefined')
+            setErrorMessage('Text document id is undefined')
             return
         }
         if (!docs) {
@@ -151,13 +163,13 @@ const MyDrive = () => {
             await docs.createViewLink(docId)
             setMessage('Text document share view link created successfully')
         } catch (error: any) {
-            setMessage(error.message)
+            setErrorMessage(error.message)
         }
     }
 
     const handleCreateDoc = () => {
         if (docType.length === 0) {
-            setMessage('You do not select document type')
+            setErrorMessage('You do not select document type')
             return
         }
         navigate(`/${docType}s/new`)
@@ -232,14 +244,14 @@ const MyDrive = () => {
                 </select>
                 {
                     message
-                    && <p
-                        style={{ color:
-                            (message === 'Text document deleted successfully' || message === 'User has been granted edit permission successfully' || message === 'Text document share view link created successfully')
-                            ? 'green'
-                            : 'red'
-                        }}
-                    >
+                    && <p style={{ color: 'green' }}>
                         {message}
+                    </p>
+                }
+                {
+                    errorMessage
+                    && <p style={{ color: 'red' }}>
+                        {errorMessage}
                     </p>
                 }
                 {!(sortedDocuments.length > 0) ? (
@@ -275,7 +287,7 @@ const MyDrive = () => {
                                             }
                                         </td>
                                         <td>
-                                            <button onClick={() => handleDeleteDoc(document._id, document.type)}>
+                                            <button onClick={() => handleDeleteDoc(document._id)}>
                                                 Delete
                                             </button>
                                         </td>
