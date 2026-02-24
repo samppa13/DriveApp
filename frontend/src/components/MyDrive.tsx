@@ -16,6 +16,7 @@ const MyDrive = () => {
     const [selectedUsers, setSelectedUsers] = useState<ISelectedUser[]>([])
     const [sortTerm, setSortTerm] = useState<string>('created-desc')
     const [docType, setDocType] = useState<string>('')
+    const [currentPage, setCurrentPage] = useState<number>(1)
 
     const docs = useContext(DocumentContext)
     const auth = useContext(AuthContext)
@@ -212,6 +213,42 @@ const MyDrive = () => {
         })
     }
 
+    const indexOfLastDoc: number = currentPage * 10
+    const indexOfFirstDoc: number = indexOfLastDoc - 10
+    const currentDocs: IDocument[] = sortedDocuments.slice(indexOfFirstDoc, indexOfLastDoc)
+    const totalPages: number = Math.ceil(sortedDocuments.length / 10)
+
+    const getPageNumbers = () => {
+        const pageNumbers: number[] = []
+
+        if (totalPages <= 7) {
+            for (let i = 1; i <= totalPages; i++) {
+                pageNumbers.push(i)
+            }
+        }
+        else {
+            pageNumbers.push(1)
+
+            let startNumber: number = Math.max(currentPage - 2, 2)
+            let endNumber: number = Math.min(currentPage + 2, totalPages - 1)
+
+            if (currentPage <= 3) {
+                endNumber = 6
+            }
+            if (currentPage >= totalPages - 2) {
+                startNumber = totalPages - 5
+            }
+
+            for (let i = startNumber; i <= endNumber; i++) {
+                pageNumbers.push(i)
+            }
+
+            pageNumbers.push(totalPages)
+        }
+
+        return pageNumbers
+    }
+
     return (
         <div>
             <div>
@@ -258,81 +295,108 @@ const MyDrive = () => {
                 {!(sortedDocuments.length > 0) ? (
                     <h2>You have not any documents.</h2>
                 ) : (
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Created</th>
-                                <th>Modified</th>
-                                <th></th>
-                                <th></th>
-                                <th></th>
-                                <th>View link</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {
-                                sortedDocuments.map((document) => (
-                                    <tr key={document._id}>
-                                        <th scope='row' onClick={() => handleEditDoc(document._id, document.type)}>
-                                            {document.name}
-                                        </th>
-                                        <td>
-                                            {
-                                                new Date(document.createdAt!).toLocaleDateString('fi')
-                                            }
-                                        </td>
-                                        <td>
-                                            {
-                                                new Date(document.updatedAt!).toLocaleDateString('fi')
-                                            }
-                                        </td>
-                                        <td>
-                                            <button onClick={() => handleDeleteDoc(document._id)}>
-                                                Delete
-                                            </button>
-                                        </td>
-                                        <td>
-                                            <select
-                                                value={selectedUsers.find((item) => item.docId === document._id)?.userId || ''}
-                                                onChange={(event) => handleSelectUser(document._id!, event.target.value)}
-                                            >
-                                                <option value="">
-                                                    Select user
-                                                </option>
-                                                {
-                                                    users.map((user) => (
-                                                        <option
-                                                            key={`${document._id}-${user._id}`}
-                                                            value={user._id}
-                                                        >
-                                                            {user.username}
-                                                        </option>
-                                                    ))
-                                                }
-                                            </select>
-                                            <button onClick={() => handleShareDoc(document._id)}>
-                                                Share
-                                            </button>
-                                        </td>
-                                        <td>
-                                            <button onClick={() => handleCreateViewLink(document._id)}>
-                                                Create view link
-                                            </button>
-                                        </td>
-                                        <td>
-                                            {
-                                                document.viewToken
-                                                && <p>
-                                                    http://localhost:5173/{document.type.toLowerCase()}s/view/{document.viewToken}
-                                                </p>
-                                            }
-                                        </td>
+                    <>
+                        <div>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Created</th>
+                                        <th>Modified</th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th>View link</th>
                                     </tr>
-                                ))
-                            }
-                        </tbody>
-                    </table>
+                                </thead>
+                                <tbody>
+                                    {
+                                        currentDocs.map((document) => (
+                                            <tr key={document._id}>
+                                                <th scope='row' onClick={() => handleEditDoc(document._id, document.type)}>
+                                                    {document.name}
+                                                </th>
+                                                <td>
+                                                    {
+                                                        new Date(document.createdAt!).toLocaleDateString('fi')
+                                                    }
+                                                </td>
+                                                <td>
+                                                    {
+                                                        new Date(document.updatedAt!).toLocaleDateString('fi')
+                                                    }
+                                                </td>
+                                                <td>
+                                                    <button onClick={() => handleDeleteDoc(document._id)}>
+                                                        Delete
+                                                    </button>
+                                                </td>
+                                                <td>
+                                                    <select
+                                                        value={selectedUsers.find((item) => item.docId === document._id)?.userId || ''}
+                                                        onChange={(event) => handleSelectUser(document._id!, event.target.value)}
+                                                    >
+                                                        <option value="">
+                                                            Select user
+                                                        </option>
+                                                        {
+                                                            users.map((user) => (
+                                                                <option
+                                                                    key={`${document._id}-${user._id}`}
+                                                                    value={user._id}
+                                                                >
+                                                                    {user.username}
+                                                                </option>
+                                                            ))
+                                                        }
+                                                    </select>
+                                                    <button onClick={() => handleShareDoc(document._id)}>
+                                                        Share
+                                                    </button>
+                                                </td>
+                                                <td>
+                                                    <button onClick={() => handleCreateViewLink(document._id)}>
+                                                        Create view link
+                                                    </button>
+                                                </td>
+                                                <td>
+                                                    {
+                                                        document.viewToken
+                                                        && <p>
+                                                            http://localhost:5173/{document.type.toLowerCase()}s/view/{document.viewToken}
+                                                        </p>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        ))
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <div>
+                            <button
+                                onClick={() => setCurrentPage((prevCurrentPage) => prevCurrentPage - 1)}
+                                disabled={currentPage === 1}
+                            >
+                                Previous
+                            </button>
+                            {getPageNumbers().map((pageNumber) => (
+                                <button
+                                    key={pageNumber}
+                                    onClick={() => setCurrentPage(pageNumber)}
+                                    disabled={currentPage === pageNumber}
+                                >
+                                    {pageNumber}
+                                </button>
+                            ))}
+                            <button
+                                onClick={() => setCurrentPage((prevCurrentPage) => prevCurrentPage + 1)}
+                                disabled={currentPage === totalPages}
+                            >
+                                Next
+                            </button>
+                        </div>
+                    </>
                 )}
             </div>
         </div>
