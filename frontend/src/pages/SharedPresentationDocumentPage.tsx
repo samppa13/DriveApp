@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import type { IDocument } from '../types/types'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 
 const SharedPresentationDocumentPage = () => {
     const [document, setDocument] = useState<IDocument | undefined>(undefined)
     const [error, setError] = useState<string>('')
 
+    const navigate = useNavigate()
     const { viewToken } = useParams()
 
     useEffect(() => {
@@ -40,22 +41,27 @@ const SharedPresentationDocumentPage = () => {
 
     return (
         <div>
-            <h2>{document.name}</h2>
+            <button onClick={() => navigate('/')}>
+                Back to home
+            </button>
             <div>
-                {document.slides?.map((slide, slideId) => (
-                    <div key={slideId}>
-                        <h2>
-                            {slide.title}
-                        </h2>
-                        <ul>
-                            {slide.bullets.map((bullet, bulletId) => (
-                                <li key={bulletId}>
-                                    {bullet}
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                ))}
+                <h2>{document.name}</h2>
+                <div>
+                    {document.slides?.map((slide, slideId) => (
+                        <div key={slideId}>
+                            <h2>
+                                {slide.title}
+                            </h2>
+                            <ul>
+                                {slide.bullets.map((bullet, bulletId) => (
+                                    <li key={bulletId}>
+                                        {bullet}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     )

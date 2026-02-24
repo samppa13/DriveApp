@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import type { IDocument } from '../types/types'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 
 const SharedTextDocumentPage = () => {
     const [document, setDocument] = useState<IDocument | undefined>(undefined)
     const [error, setError] = useState<string>('')
 
+    const navigate = useNavigate()
     const { viewToken } = useParams()
 
     useEffect(() => {
@@ -40,8 +41,13 @@ const SharedTextDocumentPage = () => {
 
     return (
         <div>
-            <h2>{document.name}</h2>
-            <p>{document.text}</p>
+            <button onClick={() => navigate('/')}>
+                Back to home
+            </button>
+            <div>
+                <h2>{document.name}</h2>
+                <p>{document.text}</p>
+            </div>
         </div>
     )
 }

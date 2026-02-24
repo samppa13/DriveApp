@@ -75,7 +75,7 @@ const documentSchema = new mongoose_1.Schema({
     type: {
         type: String,
         required: true,
-        enum: ['TextDocument', 'PresentationDocument']
+        enum: ['TextDocument', 'PresentationDocument', 'SpreadsheetDocument']
     },
     isDeleted: {
         type: Boolean,

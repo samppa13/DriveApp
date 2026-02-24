@@ -6,6 +6,7 @@ import userRouter from './src/routes/user'
 import documetRouter from './src/routes/document'
 import textDocumentRouter from './src/routes/textdocument'
 import presentationDocumentRouter from './src/routes/presentationdocument'
+import spreadsheetDocumentRouter from './src/routes/spreadsheetdocument'
 
 dotenv.config()
 connectDB()
@@ -25,6 +26,7 @@ app.use('/api/users', userRouter)
 app.use('/api/documents', documetRouter)
 app.use('/api/textdocuments', textDocumentRouter)
 app.use('/api/presentationdocuments', presentationDocumentRouter)
+app.use('/api/spreadsheetdocuments', spreadsheetDocumentRouter)
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`)

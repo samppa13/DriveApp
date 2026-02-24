@@ -10,6 +10,7 @@ const PresentationDocumentEditorPage = () => {
     const [notFound, setNotFound] = useState<boolean>(false)
     const [message, setMessage] = useState<string>('')
     const [errorMessage, setErrorMessage] = useState<string>('')
+    const [lockError, setLockError] = useState<string | null>(null)
     const [isLockAdded, setIsLockAdded] = useState<boolean>(false)
     const [isFetching, setIsFetching] = useState<boolean>(true)
     const [isSlideshow, setIsSlideshow] = useState<boolean>(false)
@@ -60,7 +61,12 @@ const PresentationDocumentEditorPage = () => {
                 if (error.message === 'Presentation document not found') {
                     setNotFound(true)
                 }
-                setErrorMessage(error.message)
+                if (error.message === 'Document is currently locked by another user') {
+                    setLockError(error.message)
+                }
+                else {
+                    setErrorMessage(error.message)
+                }
             } finally {
                 setIsFetching(false)
             }
@@ -98,7 +104,12 @@ const PresentationDocumentEditorPage = () => {
             try {
                 await docs.addDocLock(id)
             } catch (error: any) {
-                setErrorMessage(error.message)
+                if (error.message === 'Document is currently locked by another user') {
+                    setLockError(error.message)
+                }
+                else {
+                    setErrorMessage(error.message)
+                }
             }
         }, 20000)
 
@@ -208,8 +219,8 @@ const PresentationDocumentEditorPage = () => {
     if (isFetching || docs?.loading) {
         return <p>Loading...</p>
     }
-    if (errorMessage === 'Document is currently locked by another user') {
-        return <p style={{ color: 'red' }}>{message}</p>
+    if (lockError) {
+        return <p style={{ color: 'red' }}>{lockError}</p>
     }
 
     const isOwner: boolean = docs?.ownedDocuments?.some(

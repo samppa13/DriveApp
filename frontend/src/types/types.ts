@@ -19,6 +19,7 @@ export interface IDocument {
     type: string
     text?: string
     slides?: ISlide[]
+    cells?: string[][]
     user?: IUser
     permissions?: string[]
     viewToken?: string
@@ -34,6 +35,7 @@ export interface INewDocument {
     type: string
     text?: string
     slides?: ISlide[]
+    cells?: string[][]
     user?: IUser
     permissions?: string[]
     viewToken?: string

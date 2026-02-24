@@ -2,9 +2,9 @@ import { useContext, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { DocumentContext } from '../context/DocumentContext'
 import type { IDocument, INewDocument } from '../types/types'
-import TextDocumentEditor from '../components/TextDocumentEditor'
+import SpreadsheetDocumentEditor from '../components/SpreadsheetDocumentEditor'
 
-const TextDocumentEditorPage = () => {
+const SpreadsheetDocumentEditorPage = () => {
     const [document, setDocument] = useState<IDocument | undefined>(undefined)
     const [notFound, setNotFound] = useState<boolean>(false)
     const [message, setMessage] = useState<string>('')
@@ -17,7 +17,7 @@ const TextDocumentEditorPage = () => {
     const { id } = useParams()
     const navigate = useNavigate()
     const docs = useContext(DocumentContext)
-    const docType = 'TextDocument'
+    const docType = 'SpreadsheetDocument'
 
     useEffect(() => {
         if (!message) {
@@ -48,16 +48,15 @@ const TextDocumentEditorPage = () => {
 
         const fetchTextDoc = async () => {
             try {
-                const textDocument: IDocument = await docs.fetchDocument(id, docType)
-                setDocument(textDocument)
+                const spreadsheetDocument: IDocument = await docs.fetchDocument(id, docType)
+                setDocument(spreadsheetDocument)
                 setNotFound(false)
 
                 await docs.addDocLock(id)
                 lockRef.current = true
                 setIsLockAdded(true)
-                setLockError(null)
             } catch (error: any) {
-                if (error.message === 'Text document not found') {
+                if (error.message === 'Spreadsheet document not found') {
                     setNotFound(true)
                 }
                 if (error.message === 'Document is currently locked by another user') {
@@ -89,7 +88,7 @@ const TextDocumentEditorPage = () => {
     }, [id, docs?.loading])
 
     useEffect(() => {
-        if (id && document && document.type !== 'TextDocument') {
+        if (id && document && document.type !== 'SpreadsheetDocument') {
             navigate(`/${document.type.toLowerCase()}s/${id}`)
         }
     }, [document])
@@ -123,12 +122,12 @@ const TextDocumentEditorPage = () => {
         try {
             if (!id && docs) {
                 const createdDoc = await docs.createDocument(doc)
-                navigate(`/textdocuments/${createdDoc._id}/edit`)
+                navigate(`/spreadsheetdocuments/${createdDoc._id}/edit`)
             }
             else if (docs) {
                 const updatedDoc = await docs.updateDocument(doc)
                 setDocument(updatedDoc)
-                setMessage('Text document saved successfully')
+                setMessage('Spreadsheet document saved successfully')
             }
         } catch (error: any) {
             setErrorMessage(error.message || 'An unknown error occurred')
@@ -153,7 +152,7 @@ const TextDocumentEditorPage = () => {
 
     if (!id) {
         return (
-            <TextDocumentEditor
+            <SpreadsheetDocumentEditor
                 message={message}
                 errorMessage={errorMessage}
                 handleSave={handleSave}
@@ -164,7 +163,7 @@ const TextDocumentEditorPage = () => {
         return (
             <div>
                 {
-                    message === 'Text document deleted successfully'
+                    message === 'Spreadsheet document deleted successfully'
                     ? (
                         <p style={{ color: 'green' }}>{message}</p>
                     ) : (
@@ -188,7 +187,7 @@ const TextDocumentEditorPage = () => {
     ) ?? false
 
     return (
-        <TextDocumentEditor
+        <SpreadsheetDocumentEditor
             document={document}
             message={message}
             errorMessage={errorMessage}
@@ -198,4 +197,4 @@ const TextDocumentEditorPage = () => {
     )
 }
 
-export default TextDocumentEditorPage
+export default SpreadsheetDocumentEditorPage

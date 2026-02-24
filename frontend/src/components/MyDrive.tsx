@@ -106,7 +106,7 @@ const MyDrive = () => {
 
     const handleShareDoc = async (docId: string | undefined) => {
         if (!docId) {
-            setErrorMessage('Text document id is undefined')
+            setErrorMessage('Document id is undefined')
             return
         }
 
@@ -152,7 +152,7 @@ const MyDrive = () => {
 
     const handleCreateViewLink = async (docId: string | undefined) => {
         if (!docId) {
-            setErrorMessage('Text document id is undefined')
+            setErrorMessage('Document id is undefined')
             return
         }
         if (!docs) {
@@ -161,7 +161,7 @@ const MyDrive = () => {
 
         try {
             await docs.createViewLink(docId)
-            setMessage('Text document share view link created successfully')
+            setMessage('Document share view link created successfully')
         } catch (error: any) {
             setErrorMessage(error.message)
         }
@@ -224,6 +224,7 @@ const MyDrive = () => {
                     <option value=''>Select document type</option>
                     <option value='textdocument'>Text document</option>
                     <option value='presentationdocument'>Presentation document</option>
+                    <option value='spreadsheetdocument'>Spreadsheet document</option>
                 </select>
                 <button onClick={handleCreateDoc}>
                     Create a new document

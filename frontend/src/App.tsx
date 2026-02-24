@@ -12,6 +12,8 @@ import SharedTextDocumentPage from './pages/SharedTextDocumentPage'
 import PresentationDocumentEditorPage from './pages/PresentationDocumentEditorPage'
 import SharedPresentationDocumentPage from './pages/SharedPresentationDocumentPage'
 import TrashPage from './pages/TrashPage'
+import SpreadsheetDocumentEditorPage from './pages/SpreadsheetDocumentEditorPage'
+import SharedSpreadsheetDocumentPage from './pages/SharedSpreadsheetDocumentPage'
 
 const App = () => {
   return (
@@ -27,12 +29,15 @@ const App = () => {
               <Route path='/textdocuments/:id/edit' element={<TextDocumentEditorPage />} />
               <Route path='/presentationdocuments/new' element={<PresentationDocumentEditorPage />} />
               <Route path='/presentationdocuments/:id/edit' element={<PresentationDocumentEditorPage />} />
+              <Route path='/spreadsheetdocuments/new' element={<SpreadsheetDocumentEditorPage />} />
+              <Route path='/spreadsheetdocuments/:id/edit' element={<SpreadsheetDocumentEditorPage />} />
               <Route path='/trash' element={<TrashPage />} />
             </Route>
             <Route path='/login' element={<LoginPage />} />
             <Route path='/register' element={<RegisterPage />} />
             <Route path='/textdocuments/view/:viewToken' element={<SharedTextDocumentPage />} />
             <Route path='/presentationdocuments/view/:viewToken' element={<SharedPresentationDocumentPage />} />
+            <Route path='/spreadsheetdocuments/view/:viewToken' element={<SharedSpreadsheetDocumentPage />} />
           </Routes>
         </BrowserRouter>
       </DocumentProvider>
