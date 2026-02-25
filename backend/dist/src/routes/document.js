@@ -1,10 +1,16 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const uuid_1 = require("uuid");
+const fs_1 = __importDefault(require("fs"));
 const auth_1 = require("../middleware/auth");
 const User_1 = require("../models/User");
 const Document_1 = require("../models/document/Document");
+const path_1 = __importDefault(require("path"));
+const Image_1 = require("../models/document/Image");
 const router = (0, express_1.Router)();
 const LOCK_TIMEOUT = 2 * 60 * 1000;
 router.get('/', auth_1.verifyToken, async (request, response) => {
@@ -13,17 +19,22 @@ router.get('/', auth_1.verifyToken, async (request, response) => {
             user: request.user?.id,
             isDeleted: false
         });
+        response.status(200).json(ownedDocs);
+    }
+    catch (error) {
+        response.status(500).json({ error: 'Error fetching documents' });
+    }
+});
+router.get('/shared', auth_1.verifyToken, async (request, response) => {
+    try {
         const sharedDocs = await Document_1.DocumentModel.find({
             permissions: request.user?.id,
             isDeleted: false
         }).populate('user', 'id username');
-        response.status(200).json({
-            ownedDocs,
-            sharedDocs
-        });
+        response.status(200).json(sharedDocs);
     }
     catch (error) {
-        response.status(500).json({ error: 'Error fetching documents' });
+        response.status(500).json({ error: 'Error fetching shared documents' });
     }
 });
 router.get('/trash', auth_1.verifyToken, async (request, response) => {
@@ -52,6 +63,21 @@ router.post('/trash/restore', auth_1.verifyToken, async (request, response) => {
 });
 router.delete('/trash/empty', auth_1.verifyToken, async (request, response) => {
     try {
+        const images = await Image_1.ImageModel.find({
+            user: request.user?.id,
+            isDeleted: true
+        });
+        for (const image of images) {
+            const imgPath = path_1.default.join('./public', image.path);
+            if (fs_1.default.existsSync(imgPath)) {
+                try {
+                    await fs_1.default.promises.unlink(imgPath);
+                }
+                catch (error) {
+                    console.log(`Failed delete file ${imgPath}`);
+                }
+            }
+        }
         await Document_1.DocumentModel.deleteMany({
             user: request.user?.id,
             isDeleted: true
@@ -81,7 +107,7 @@ router.delete('/:id', auth_1.verifyToken, async (request, response) => {
 });
 router.delete('/:id/permanent', auth_1.verifyToken, async (request, response) => {
     try {
-        const document = await Document_1.DocumentModel.findOneAndDelete({
+        const document = await Document_1.DocumentModel.findOne({
             _id: request.params.id,
             user: request.user?.id,
             isDeleted: true
@@ -90,6 +116,18 @@ router.delete('/:id/permanent', auth_1.verifyToken, async (request, response) =>
             response.status(404).json({ error: 'Document not found' });
             return;
         }
+        if (document.type === 'Image') {
+            const image = await Image_1.ImageModel.findById(request.params.id);
+            if (!image) {
+                response.status(404).json({ error: 'Document not found' });
+                return;
+            }
+            const imgPath = path_1.default.join('./public', image.path);
+            if (fs_1.default.existsSync(imgPath)) {
+                await fs_1.default.promises.unlink(imgPath);
+            }
+        }
+        await Document_1.DocumentModel.findByIdAndDelete(document._id);
         response.status(200).json({ message: 'Document deleted successfully' });
     }
     catch (error) {

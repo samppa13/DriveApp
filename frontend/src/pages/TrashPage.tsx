@@ -114,7 +114,12 @@ const TrashPage = () => {
                 ? prevDocs.filter((doc) => doc._id !== restoredDoc._id)
                 : prevDocs
             )
-            setMessage(`Document ${restoredDoc.name} restored successfully`)
+            if (restoredDoc.type === 'Image') {
+                setMessage(`Image ${restoredDoc.name} restored successfully`)
+            }
+            else {
+                setMessage(`Document ${restoredDoc.name} restored successfully`)
+            }
         } catch (error: any) {
             setError(error.message)
         }
@@ -191,7 +196,10 @@ const TrashPage = () => {
                                     documents.map((document) => (
                                         <tr key={document._id}>
                                             <th scope='row'>
-                                                {document.name}
+                                                {document.type === 'Image'
+                                                    ? document.originalName
+                                                    : document.name
+                                                }
                                             </th>
                                             <td>
                                                 {

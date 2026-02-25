@@ -12,6 +12,7 @@ const document_1 = __importDefault(require("./src/routes/document"));
 const textdocument_1 = __importDefault(require("./src/routes/textdocument"));
 const presentationdocument_1 = __importDefault(require("./src/routes/presentationdocument"));
 const spreadsheetdocument_1 = __importDefault(require("./src/routes/spreadsheetdocument"));
+const image_1 = __importDefault(require("./src/routes/image"));
 dotenv_1.default.config();
 (0, db_1.default)();
 const app = (0, express_1.default)();
@@ -28,6 +29,7 @@ app.use('/api/documents', document_1.default);
 app.use('/api/textdocuments', textdocument_1.default);
 app.use('/api/presentationdocuments', presentationdocument_1.default);
 app.use('/api/spreadsheetdocuments', spreadsheetdocument_1.default);
+app.use('/api/images', image_1.default);
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });

@@ -1,9 +1,12 @@
 import { Request, Response, Router } from 'express'
 import { JwtPayload } from 'jsonwebtoken'
 import { v4 as uuidv4 } from 'uuid'
+import fs from 'fs'
 import { verifyToken } from '../middleware/auth'
 import { IUser, User } from '../models/User'
 import { DocumentModel, IDocument } from '../models/document/Document'
+import path from 'path'
+import { IImage, ImageModel } from '../models/document/Image'
 
 const router: Router = Router()
 
@@ -19,17 +22,23 @@ router.get('/', verifyToken, async (request: AuthRequest, response: Response) =>
             user: request.user?.id,
             isDeleted: false
         })
+
+        response.status(200).json(ownedDocs)
+    } catch (error) {
+        response.status(500).json({ error: 'Error fetching documents'})
+    }
+})
+
+router.get('/shared', verifyToken, async (request: AuthRequest, response: Response) => {
+    try {
         const sharedDocs: IDocument[] = await DocumentModel.find({
             permissions: request.user?.id,
             isDeleted: false
         }).populate('user', 'id username')
 
-        response.status(200).json({
-            ownedDocs,
-            sharedDocs
-        })
+        response.status(200).json(sharedDocs)
     } catch (error) {
-        response.status(500).json({ error: 'Error fetching documents'})
+        response.status(500).json({ error: 'Error fetching shared documents' })
     }
 })
 
@@ -64,6 +73,22 @@ router.post('/trash/restore', verifyToken, async (request: AuthRequest, response
 
 router.delete('/trash/empty', verifyToken, async (request: AuthRequest, response: Response) => {
     try {
+        const images: IImage[] = await ImageModel.find({
+            user: request.user?.id,
+            isDeleted: true
+        })
+
+        for (const image of images) {
+            const imgPath = path.join('./public', image.path)
+            if (fs.existsSync(imgPath)) {
+                try {
+                    await fs.promises.unlink(imgPath)
+                } catch (error) {
+                    console.log(`Failed delete file ${imgPath}`)
+                }
+            }
+        }
+
         await DocumentModel.deleteMany({
             user: request.user?.id,
             isDeleted: true
@@ -99,7 +124,7 @@ router.delete('/:id', verifyToken, async (request: AuthRequest, response: Respon
 
 router.delete('/:id/permanent', verifyToken, async (request: AuthRequest, response: Response) => {
     try {
-        const document: IDocument | null = await DocumentModel.findOneAndDelete({
+        const document: IDocument | null = await DocumentModel.findOne({
             _id: request.params.id,
             user: request.user?.id,
             isDeleted: true
@@ -108,6 +133,20 @@ router.delete('/:id/permanent', verifyToken, async (request: AuthRequest, respon
             response.status(404).json({ error: 'Document not found' })
             return
         }
+        if (document.type === 'Image') {
+            const image: IImage | null = await ImageModel.findById(request.params.id)
+            if (!image) {
+                response.status(404).json({ error: 'Document not found' })
+                return
+            }
+
+            const imgPath = path.join('./public', image.path)
+            if (fs.existsSync(imgPath)) {
+                await fs.promises.unlink(imgPath)
+            }
+        }
+
+        await DocumentModel.findByIdAndDelete(document._id)
 
         response.status(200).json({ message: 'Document deleted successfully' })
     } catch (error) {

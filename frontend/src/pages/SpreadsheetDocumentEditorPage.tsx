@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { DocumentContext } from '../context/DocumentContext'
 import type { IDocument, INewDocument } from '../types/types'
 import SpreadsheetDocumentEditor from '../components/SpreadsheetDocumentEditor'
+import { AuthContext } from '../context/AuthContext'
 
 const SpreadsheetDocumentEditorPage = () => {
     const [document, setDocument] = useState<IDocument | undefined>(undefined)
@@ -14,10 +15,16 @@ const SpreadsheetDocumentEditorPage = () => {
     const [isFetching, setIsFetching] = useState<boolean>(true)
 
     const lockRef = useRef<boolean>(false)
+    const isDeletingRef = useRef<boolean>(false)
     const { id } = useParams()
     const navigate = useNavigate()
+    const auth = useContext(AuthContext)
     const docs = useContext(DocumentContext)
     const docType = 'SpreadsheetDocument'
+
+    if (!docs) {
+        return null
+    }
 
     useEffect(() => {
         if (!message) {
@@ -42,7 +49,7 @@ const SpreadsheetDocumentEditorPage = () => {
     }, [errorMessage])
 
     useEffect(() => {
-        if (!id || !docs || docs.loading) {
+        if (!id || docs.loading) {
             return
         }
 
@@ -74,7 +81,7 @@ const SpreadsheetDocumentEditorPage = () => {
 
         return () => {
             const releaseLock = async () => {
-                if (!lockRef.current) {
+                if (!lockRef.current || isDeletingRef.current) {
                     return
                 }
                 try {
@@ -85,7 +92,7 @@ const SpreadsheetDocumentEditorPage = () => {
             }
             releaseLock()
         }
-    }, [id, docs?.loading])
+    }, [id, docs.loading])
 
     useEffect(() => {
         if (id && document && document.type !== 'SpreadsheetDocument') {
@@ -94,7 +101,7 @@ const SpreadsheetDocumentEditorPage = () => {
     }, [document])
 
     useEffect(() => {
-        if (!id || !docs || !isLockAdded || !document) {
+        if (!id || !isLockAdded || !document) {
             return
         }
 
@@ -120,11 +127,11 @@ const SpreadsheetDocumentEditorPage = () => {
             return
         }
         try {
-            if (!id && docs) {
+            if (!id) {
                 const createdDoc = await docs.createDocument(doc)
                 navigate(`/spreadsheetdocuments/${createdDoc._id}/edit`)
             }
-            else if (docs) {
+            else {
                 const updatedDoc = await docs.updateDocument(doc)
                 setDocument(updatedDoc)
                 setMessage('Spreadsheet document saved successfully')
@@ -135,13 +142,17 @@ const SpreadsheetDocumentEditorPage = () => {
     }
 
     const handleDelete = async (id: string) => {
-        if (!docs) {
-            return
-        }
+        isDeletingRef.current = true
 
         try {
+            if (lockRef.current) {
+                await docs.deleteDocLock(id)
+                lockRef.current = false
+            }
+
             const mess = await docs.deleteDocument(id)
             setMessage(mess)
+            setNotFound(true)
             setTimeout(() => {
                 navigate('/')
             }, 2000)
@@ -163,7 +174,7 @@ const SpreadsheetDocumentEditorPage = () => {
         return (
             <div>
                 {
-                    message === 'Spreadsheet document deleted successfully'
+                    message === 'Document moved to trash successfully'
                     ? (
                         <p style={{ color: 'green' }}>{message}</p>
                     ) : (
@@ -175,16 +186,14 @@ const SpreadsheetDocumentEditorPage = () => {
             </div>
         )
     }
-    if (isFetching || docs?.loading) {
+    if (isFetching || docs.loading) {
         return <p>Loading...</p>
     }
     if (lockError) {
         return <p style={{ color: 'red' }}>{lockError}</p>
     }
 
-    const isOwner: boolean = docs?.ownedDocuments?.some(
-        (textDoc) => textDoc._id === id
-    ) ?? false
+    const isOwner: boolean = document?.user === auth.user?._id
 
     return (
         <SpreadsheetDocumentEditor

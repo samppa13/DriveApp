@@ -14,6 +14,7 @@ import SharedPresentationDocumentPage from './pages/SharedPresentationDocumentPa
 import TrashPage from './pages/TrashPage'
 import SpreadsheetDocumentEditorPage from './pages/SpreadsheetDocumentEditorPage'
 import SharedSpreadsheetDocumentPage from './pages/SharedSpreadsheetDocumentPage'
+import ImagePage from './pages/ImagePage'
 
 const App = () => {
   return (
@@ -32,6 +33,7 @@ const App = () => {
               <Route path='/spreadsheetdocuments/new' element={<SpreadsheetDocumentEditorPage />} />
               <Route path='/spreadsheetdocuments/:id/edit' element={<SpreadsheetDocumentEditorPage />} />
               <Route path='/trash' element={<TrashPage />} />
+              <Route path='/images/:id/edit' element={<ImagePage />} />
             </Route>
             <Route path='/login' element={<LoginPage />} />
             <Route path='/register' element={<RegisterPage />} />

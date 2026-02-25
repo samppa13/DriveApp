@@ -20,6 +20,8 @@ export interface IDocument {
     text?: string
     slides?: ISlide[]
     cells?: string[][]
+    path?: string
+    originalName?: string
     user?: IUser
     permissions?: string[]
     viewToken?: string

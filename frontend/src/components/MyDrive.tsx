@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DocumentContext } from '../context/DocumentContext'
 import type { IDocument, IUser } from '../types/types'
@@ -17,10 +17,16 @@ const MyDrive = () => {
     const [sortTerm, setSortTerm] = useState<string>('created-desc')
     const [docType, setDocType] = useState<string>('')
     const [currentPage, setCurrentPage] = useState<number>(1)
+    const [file, setFile] = useState<File | null>(null)
+    const [isUploading, setIsUploading] = useState<boolean>(false)
 
     const docs = useContext(DocumentContext)
     const auth = useContext(AuthContext)
     const navigate = useNavigate()
+
+    if (!docs) {
+        return null
+    }
 
     useEffect(() => {
         if (!message) {
@@ -70,17 +76,29 @@ const MyDrive = () => {
         fetchUsers()
     }, [auth.token, auth.user?._id])
 
-    if (docs?.loading) {
+    useEffect(() => {
+        if (!docs) {
+            return
+        }
+
+        const fetchDocs = async () => {
+            try {
+                await docs.fetchOwnedDocuments()
+            } catch (error: unknown) {
+                if (error instanceof Error && error.name !== 'AbortError') {
+                    setErrorMessage(error.message)
+                }
+            }
+        }
+        fetchDocs()
+    }, [])
+
+    if (docs.loading) {
         return (
             <p>Loading...</p>
         )
     }
-    if (docs?.error) {
-        return (
-            <p style={{ color: 'red' }}>{docs.error}</p>
-        )
-    }
-    if (docs?.ownedDocuments === null) {
+    if (docs.ownedDocuments === null) {
         return <p>Loading...</p>
     }
 
@@ -91,9 +109,6 @@ const MyDrive = () => {
     const handleDeleteDoc = async (id: string | undefined) => {
         if (!id) {
             setErrorMessage('Id is undefined')
-            return
-        }
-        if (!docs) {
             return
         }
 
@@ -116,10 +131,6 @@ const MyDrive = () => {
         )
         if (!selectedUser) {
             setErrorMessage('Please select a user to share with')
-            return
-        }
-
-        if (!docs) {
             return
         }
 
@@ -156,9 +167,6 @@ const MyDrive = () => {
             setErrorMessage('Document id is undefined')
             return
         }
-        if (!docs) {
-            return
-        }
 
         try {
             await docs.createViewLink(docId)
@@ -176,42 +184,66 @@ const MyDrive = () => {
         navigate(`/${docType}s/new`)
     }
 
-    let sortedDocuments: IDocument[] = []
-    if (docs) {
-        sortedDocuments = [...docs?.ownedDocuments].sort((doc1, doc2) => {
-            if (sortTerm === 'created-desc') {
-                const time1 = doc1.createdAt ? new Date(doc1.createdAt).getTime() : 0
-                const time2 = doc2.createdAt ? new Date(doc2.createdAt).getTime() : 0
-                return time2 - time1
-            }
-            else if (sortTerm === 'created-asc') {
-                const time1 = doc1.createdAt ? new Date(doc1.createdAt).getTime() : 0
-                const time2 = doc2.createdAt ? new Date(doc2.createdAt).getTime() : 0
-                return time1 - time2
-            }
-            else if (sortTerm === 'updated-desc') {
-                const time1 = doc1.updatedAt ? new Date(doc1.updatedAt).getTime() : 0
-                const time2 = doc2.updatedAt ? new Date(doc2.updatedAt).getTime() : 0
-                return time2 - time1
-            }
-            else if (sortTerm === 'updated-asc') {
-                const time1 = doc1.updatedAt ? new Date(doc1.updatedAt).getTime() : 0
-                const time2 = doc2.updatedAt ? new Date(doc2.updatedAt).getTime() : 0
-                return time1 - time2
-            }
-            else if (sortTerm === 'name-asc') {
-                return doc1.name
-                    .toLowerCase()
-                    .localeCompare(doc2.name.toLowerCase())
-            }
-            else if (sortTerm === 'name-desc') {
-                return doc2.name
-                    .toLowerCase()
-                    .localeCompare(doc1.name.toLowerCase())
-            }
-            return 0
-        })
+    const handleUploadImage = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault()
+
+        if (!file) {
+            setErrorMessage('No file selected')
+            return
+        }
+        if (!file.type.startsWith('image/')) {
+            setErrorMessage('Only image files allowed')
+            return
+        }
+
+        setIsUploading(true)
+        const formData: FormData = new FormData()
+        formData.append('image', file)
+
+        try {
+            const mess = await docs.uploadImage(formData)
+            setMessage(mess)
+            setFile(null)
+        } catch (error: any) {
+            setErrorMessage(error.message)
+        } finally {
+            setIsUploading(false)
+        }
     }
+
+    const sortedDocuments: IDocument[] = [...docs.ownedDocuments].sort((doc1, doc2) => {
+        if (sortTerm === 'created-desc') {
+            const time1 = doc1.createdAt ? new Date(doc1.createdAt).getTime() : 0
+            const time2 = doc2.createdAt ? new Date(doc2.createdAt).getTime() : 0
+            return time2 - time1
+        }
+        else if (sortTerm === 'created-asc') {
+            const time1 = doc1.createdAt ? new Date(doc1.createdAt).getTime() : 0
+            const time2 = doc2.createdAt ? new Date(doc2.createdAt).getTime() : 0
+            return time1 - time2
+        }
+        else if (sortTerm === 'updated-desc') {
+            const time1 = doc1.updatedAt ? new Date(doc1.updatedAt).getTime() : 0
+            const time2 = doc2.updatedAt ? new Date(doc2.updatedAt).getTime() : 0
+            return time2 - time1
+        }
+        else if (sortTerm === 'updated-asc') {
+            const time1 = doc1.updatedAt ? new Date(doc1.updatedAt).getTime() : 0
+            const time2 = doc2.updatedAt ? new Date(doc2.updatedAt).getTime() : 0
+            return time1 - time2
+        }
+        else if (sortTerm === 'name-asc') {
+            return doc1.name
+                .toLowerCase()
+                .localeCompare(doc2.name.toLowerCase())
+        }
+        else if (sortTerm === 'name-desc') {
+            return doc2.name
+                .toLowerCase()
+                .localeCompare(doc1.name.toLowerCase())
+        }
+        return 0
+    })
 
     const indexOfLastDoc: number = currentPage * 10
     const indexOfFirstDoc: number = indexOfLastDoc - 10
@@ -266,6 +298,25 @@ const MyDrive = () => {
                 <button onClick={handleCreateDoc}>
                     Create a new document
                 </button>
+                <div>
+                    <form onSubmit={handleUploadImage}>
+                        <input
+                            type='file'
+                            name='image'
+                            id='image'
+                            accept='image/*'
+                            required
+                            onChange={(event) => {
+                                if (event.target.files && event.target.files.length > 0) {
+                                    setFile(event.target.files[0])
+                                }
+                            }}
+                        />
+                        <button type='submit' disabled={isUploading}>
+                            {isUploading ? 'Uploading...' : 'Upload'}
+                        </button>
+                    </form>
+                </div>
                 <label htmlFor='sort'>Sort</label>
                 <select
                     name='sort'
@@ -314,7 +365,10 @@ const MyDrive = () => {
                                         currentDocs.map((document) => (
                                             <tr key={document._id}>
                                                 <th scope='row' onClick={() => handleEditDoc(document._id, document.type)}>
-                                                    {document.name}
+                                                    {document.type === 'Image'
+                                                        ? document.originalName
+                                                        : document.name
+                                                    }
                                                 </th>
                                                 <td>
                                                     {
@@ -336,7 +390,7 @@ const MyDrive = () => {
                                                         value={selectedUsers.find((item) => item.docId === document._id)?.userId || ''}
                                                         onChange={(event) => handleSelectUser(document._id!, event.target.value)}
                                                     >
-                                                        <option value="">
+                                                        <option value=''>
                                                             Select user
                                                         </option>
                                                         {
@@ -355,9 +409,12 @@ const MyDrive = () => {
                                                     </button>
                                                 </td>
                                                 <td>
-                                                    <button onClick={() => handleCreateViewLink(document._id)}>
-                                                        Create view link
-                                                    </button>
+                                                    {
+                                                        document.type !== 'Image'
+                                                        && <button onClick={() => handleCreateViewLink(document._id)}>
+                                                                Create view link
+                                                            </button>
+                                                    }
                                                 </td>
                                                 <td>
                                                     {

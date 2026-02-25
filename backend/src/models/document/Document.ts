@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose'
 
-type DocumentType = 'TextDocument' | 'PresentationDocument' | 'SpreadsheetDocument'
+type DocumentType = 'TextDocument' | 'PresentationDocument' | 'SpreadsheetDocument' | 'Image'
 
 interface ILock {
     user: mongoose.Types.ObjectId
@@ -59,7 +59,7 @@ const documentSchema: Schema = new Schema(
         type: {
             type: String,
             required: true,
-            enum: ['TextDocument', 'PresentationDocument', 'SpreadsheetDocument']
+            enum: ['TextDocument', 'PresentationDocument', 'SpreadsheetDocument', 'Image']
         },
         isDeleted: {
             type: Boolean,
