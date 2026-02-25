@@ -7,6 +7,7 @@ const TrashPage = () => {
     const [documents, setDocuments] = useState<IDocument[] | null>(null)
     const [message, setMessage] = useState<string>('')
     const [error, setError] = useState<string>('')
+    const [currentPage, setCurrentPage] = useState<number>(1)
 
     const auth = useContext(AuthContext)
     const docs = useContext(DocumentContext)
@@ -147,6 +148,43 @@ const TrashPage = () => {
     if (!documents) {
         return <p>Loading...</p>
     }
+
+    const indexOfLastDoc: number = currentPage * 10
+    const indexOfFirstDoc: number = indexOfLastDoc - 10
+    const currentDocs: IDocument[] = documents.slice(indexOfFirstDoc, indexOfLastDoc)
+    const totalPages: number = Math.ceil(documents.length / 10)
+
+    const getPageNumbers = () => {
+        const pageNumbers: number[] = []
+
+        if (totalPages <= 7) {
+            for (let i = 1; i <= totalPages; i++) {
+                pageNumbers.push(i)
+            }
+        }
+        else {
+            pageNumbers.push(1)
+
+            let startNumber: number = Math.max(currentPage - 2, 2)
+            let endNumber: number = Math.min(currentPage + 2, totalPages - 1)
+
+            if (currentPage <= 3) {
+                endNumber = 6
+            }
+            if (currentPage >= totalPages - 2) {
+                startNumber = totalPages - 5
+            }
+
+            for (let i = startNumber; i <= endNumber; i++) {
+                pageNumbers.push(i)
+            }
+
+            pageNumbers.push(totalPages)
+        }
+
+        return pageNumbers
+    }
+
     return (
         <div>
             {documents.length === 0
@@ -182,50 +220,75 @@ const TrashPage = () => {
                                 {error}
                             </p>
                         }
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Created</th>
-                                    <th>Modified</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {
-                                    documents.map((document) => (
-                                        <tr key={document._id}>
-                                            <th scope='row'>
-                                                {document.type === 'Image'
-                                                    ? document.originalName
-                                                    : document.name
-                                                }
-                                            </th>
-                                            <td>
-                                                {
-                                                    new Date(document.createdAt!).toLocaleDateString('fi')
-                                                }
-                                            </td>
-                                            <td>
-                                                {
-                                                    new Date(document.updatedAt!).toLocaleDateString('fi')
-                                                }
-                                            </td>
-                                            <td>
-                                                <button onClick={() => handleDeleteDoc(document._id)}>
-                                                    Delete
-                                                </button>
-                                            </td>
-                                            <td>
-                                                <button onClick={() => handleRestoreDoc(document._id)}>
-                                                    Restore
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))
-                                }
-                            </tbody>
-                        </table>
+                        <div>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Created</th>
+                                        <th>Modified</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {
+                                        currentDocs.map((document) => (
+                                            <tr key={document._id}>
+                                                <th scope='row'>
+                                                    {document.type === 'Image'
+                                                        ? document.originalName
+                                                        : document.name
+                                                    }
+                                                </th>
+                                                <td>
+                                                    {
+                                                        new Date(document.createdAt!).toLocaleDateString('fi')
+                                                    }
+                                                </td>
+                                                <td>
+                                                    {
+                                                        new Date(document.updatedAt!).toLocaleDateString('fi')
+                                                    }
+                                                </td>
+                                                <td>
+                                                    <button onClick={() => handleDeleteDoc(document._id)}>
+                                                        Delete
+                                                    </button>
+                                                </td>
+                                                <td>
+                                                    <button onClick={() => handleRestoreDoc(document._id)}>
+                                                        Restore
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <div>
+                            <button
+                                onClick={() => setCurrentPage((prevCurrentPage) => prevCurrentPage - 1)}
+                                disabled={currentPage === 1}
+                            >
+                                Previous
+                            </button>
+                            {getPageNumbers().map((pageNumber) => (
+                                <button
+                                    key={pageNumber}
+                                    onClick={() => setCurrentPage(pageNumber)}
+                                    disabled={currentPage === pageNumber}
+                                >
+                                    {pageNumber}
+                                </button>
+                            ))}
+                            <button
+                                onClick={() => setCurrentPage((prevCurrentPage) => prevCurrentPage + 1)}
+                                disabled={currentPage === totalPages}
+                            >
+                                Next
+                            </button>
+                        </div>
                     </>
                 )
             }

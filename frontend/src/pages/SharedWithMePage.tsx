@@ -7,6 +7,7 @@ const SharedWithMePage = () => {
     const [sortTerm, setSortTerm] = useState<string>('created-desc')
     const [errorMessage, setErrorMessage] = useState<string>('')
     const [currentPage, setCurrentPage] = useState<number>(1)
+    const [searchTerm, setSearchTerm] = useState<string>('')
 
     const docs = useContext(DocumentContext)
     const navigate = useNavigate()
@@ -41,7 +42,7 @@ const SharedWithMePage = () => {
         navigate(`/${type.toLowerCase()}s/${id}/edit`)
     }
 
-    let sortedDocuments: IDocument[] = [...docs.sharedDocuments].sort((doc1, doc2) => {
+    const sortedDocuments: IDocument[] = [...docs.sharedDocuments].sort((doc1, doc2) => {
         if (sortTerm === 'created-desc') {
             const time1 = doc1.createdAt ? new Date(doc1.createdAt).getTime() : 0
             const time2 = doc2.createdAt ? new Date(doc2.createdAt).getTime() : 0
@@ -75,10 +76,14 @@ const SharedWithMePage = () => {
         return 0
     })
 
+    const filteredDocuments: IDocument[] = sortedDocuments.filter((doc) =>
+        doc.name.toLowerCase().includes(searchTerm.toLocaleLowerCase())
+    )
+
     const indexOfLastDoc: number = currentPage * 10
     const indexOfFirstDoc: number = indexOfLastDoc - 10
-    const currentDocs: IDocument[] = sortedDocuments.slice(indexOfFirstDoc, indexOfLastDoc)
-    const totalPages: number = Math.ceil(sortedDocuments.length / 10)
+    const currentDocs: IDocument[] = filteredDocuments.slice(indexOfFirstDoc, indexOfLastDoc)
+    const totalPages: number = Math.ceil(filteredDocuments.length / 10)
 
     const getPageNumbers = () => {
         const pageNumbers: number[] = []
@@ -133,8 +138,23 @@ const SharedWithMePage = () => {
                     {errorMessage}
                 </p>
             }
-            {!sortedDocuments.length ? (
-                <h2>No text documents have been shared with you.</h2>
+            <div>
+                <input
+                    type='text'
+                    name='searchTerm'
+                    id='searchTerm'
+                    placeholder='Search by name'
+                    value={searchTerm}
+                    onChange={(event) => setSearchTerm(event.target.value)}
+                />
+            </div>
+            {!filteredDocuments.length ? (
+                <h2>
+                    {sortedDocuments.length === 0
+                        ? 'No text documents have been shared with you.'
+                        : 'Documents not found.'
+                    }
+                </h2>
             ) : (
                 <>
                     <div>

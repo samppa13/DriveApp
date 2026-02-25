@@ -19,6 +19,7 @@ const MyDrive = () => {
     const [currentPage, setCurrentPage] = useState<number>(1)
     const [file, setFile] = useState<File | null>(null)
     const [isUploading, setIsUploading] = useState<boolean>(false)
+    const [searchTerm, setSearchTerm] = useState<string>('')
 
     const docs = useContext(DocumentContext)
     const auth = useContext(AuthContext)
@@ -245,10 +246,14 @@ const MyDrive = () => {
         return 0
     })
 
+    const filteredDocuments: IDocument[] = sortedDocuments.filter((doc) =>
+        doc.name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+
     const indexOfLastDoc: number = currentPage * 10
     const indexOfFirstDoc: number = indexOfLastDoc - 10
-    const currentDocs: IDocument[] = sortedDocuments.slice(indexOfFirstDoc, indexOfLastDoc)
-    const totalPages: number = Math.ceil(sortedDocuments.length / 10)
+    const currentDocs: IDocument[] = filteredDocuments.slice(indexOfFirstDoc, indexOfLastDoc)
+    const totalPages: number = Math.ceil(filteredDocuments.length / 10)
 
     const getPageNumbers = () => {
         const pageNumbers: number[] = []
@@ -343,8 +348,23 @@ const MyDrive = () => {
                         {errorMessage}
                     </p>
                 }
-                {!(sortedDocuments.length > 0) ? (
-                    <h2>You have not any documents.</h2>
+                <div>
+                    <input
+                        type='text'
+                        name='searchTerm'
+                        id='searchTerm'
+                        placeholder='Search by name'
+                        value={searchTerm}
+                        onChange={(event) => setSearchTerm(event.target.value)}
+                    />
+                </div>
+                {!(filteredDocuments.length > 0) ? (
+                    <h2>
+                        {sortedDocuments.length === 0
+                            ? 'You have not any documents.'
+                            : 'Documents not found.'
+                        }
+                    </h2>
                 ) : (
                     <>
                         <div>
