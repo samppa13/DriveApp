@@ -15,6 +15,7 @@ import TrashPage from './pages/TrashPage'
 import SpreadsheetDocumentEditorPage from './pages/SpreadsheetDocumentEditorPage'
 import SharedSpreadsheetDocumentPage from './pages/SharedSpreadsheetDocumentPage'
 import ImagePage from './pages/ImagePage'
+import ProfilePage from './pages/ProfilePage'
 
 const App = () => {
   return (
@@ -34,6 +35,7 @@ const App = () => {
               <Route path='/spreadsheetdocuments/:id/edit' element={<SpreadsheetDocumentEditorPage />} />
               <Route path='/trash' element={<TrashPage />} />
               <Route path='/images/:id/edit' element={<ImagePage />} />
+              <Route path='/profile' element={<ProfilePage />} />
             </Route>
             <Route path='/login' element={<LoginPage />} />
             <Route path='/register' element={<RegisterPage />} />

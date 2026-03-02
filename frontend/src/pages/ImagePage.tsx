@@ -116,6 +116,7 @@ const ImagePage = () => {
     }
 
     const isOwner: boolean = image?.user === auth.user?._id
+    const imgUrl: string = `http://localhost:9000/api/images/${image._id}/file`
 
     return (
         <div>
@@ -126,7 +127,9 @@ const ImagePage = () => {
                 </p>
             }
             <ImageGrid
-                image={image}
+                name={image.name}
+                imgUrl={imgUrl}
+                isProfile={false}
             />
             {
                 isOwner

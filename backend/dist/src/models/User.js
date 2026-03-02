@@ -43,6 +43,10 @@ const UserSchema = new mongoose_1.Schema({
     password: {
         type: String,
         required: true
+    },
+    profileImage: {
+        type: String,
+        default: null
     }
 });
 const User = mongoose_1.default.model('User', UserSchema);

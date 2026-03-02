@@ -151,7 +151,7 @@ const SharedWithMePage = () => {
             {!filteredDocuments.length ? (
                 <h2>
                     {sortedDocuments.length === 0
-                        ? 'No text documents have been shared with you.'
+                        ? 'No documents have been shared with you.'
                         : 'Documents not found.'
                     }
                 </h2>

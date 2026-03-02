@@ -3,8 +3,15 @@ import bcrypt from 'bcryptjs'
 import jwt, { JwtPayload } from 'jsonwebtoken'
 import { IUser, User } from '../models/User'
 import { verifyToken } from '../middleware/auth'
+import upload from '../middleware/multer-config'
+import path from 'path'
+import fs from 'fs'
 
 const router: Router = Router()
+
+interface AuthRequest extends Request {
+    user?: JwtPayload
+}
 
 router.post('/register', async (request: Request, response: Response) => {
     try {
@@ -65,6 +72,140 @@ router.get('/', verifyToken, async (request: Request, response: Response) => {
         return response.status(200).json(users)
     } catch (error: any) {
         response.status(500).json({ error: 'Error while fetching users' })
+    }
+})
+
+router.get('/profile/image/file', verifyToken, async (request: AuthRequest, response: Response) => {
+    try {
+        const user: IUser | null = await User.findById(request.user?.id)
+        if (!user) {
+            response.status(404).json({ error: 'User not found' })
+            return
+        }
+        if (!user.profileImage) {
+            response.status(403).json({ error: 'Profile image not found' })
+            return
+        }
+
+        const imagesDir = path.resolve(__dirname, `../../../public/images/${user._id}`)
+        const imgPath = path.resolve(imagesDir, user.profileImage)
+        if (!imgPath.startsWith(imagesDir)) {
+            response.status(400).json({ error: 'Invalid path' })
+            return
+        }
+        try {
+            await fs.promises.access(imgPath)
+        } catch (error) {
+            response.status(404).json({ error: 'File missing on server' })
+            return
+        }
+
+        response.sendFile(imgPath)
+    } catch (error) {
+        response.status(500).json({ error: 'Error feching image' })
+    }
+})
+
+
+
+router.post('/profile/image/upload', verifyToken, upload.single('image'), async (request: AuthRequest, response: Response) => {
+    try {
+        if (!request.file) {
+            response.status(400).json({ error: 'No image uploaded' })
+            return
+        }
+
+        const user: IUser | null = await User.findById(request.user?.id)
+        if (!user) {
+            response.status(404).json({ error: 'User not found' })
+            return
+        }
+        if (user.profileImage) {
+            const oldPath = path.join(__dirname, `../../../public/images/${user._id}/${user.profileImage}`)
+
+            try {
+                await fs.promises.unlink(oldPath)
+            } catch {}
+        }
+
+        user.profileImage = request.file.filename
+        await user.save()
+
+        response.status(200).json({ message: 'Profile image updated successfully', filename: request.file.filename })
+    } catch (error) {
+        response.status(500).json({ error: 'Error uploading image' })
+    }
+})
+
+router.delete('/profile/image', verifyToken, async (request: AuthRequest, response: Response) => {
+    try {
+        const user: IUser | null = await User.findById(request.user?.id)
+        if (!user) {
+            response.status(404).json({ error: 'User not found' })
+            return
+        }
+        if (!user.profileImage) {
+            response.status(400).json({ error: 'Profile image not found' })
+            return
+        }
+
+        const imgPath = path.join(__dirname, `../../../public/images/${user._id}/${user.profileImage}`)
+
+        try {
+            await fs.promises.unlink(imgPath)
+        } catch {}
+
+        user.profileImage = null
+        await user.save()
+
+        response.status(200).json({ message: 'Profile image deleted successfully' })
+    } catch (error) {
+        response.status(500).json({ error: 'Error deleting profile image' })
+    }
+})
+
+router.get('/profile', verifyToken, async (request: AuthRequest, response: Response) => {
+    try {
+        const user = await User.findById(request.user?.id).select('-password')
+
+        if (!user) {
+            response.status(404).json({ error: 'User not found' })
+            return
+        }
+
+        response.status(200).json(user)
+    } catch (error) {
+        response.status(500).json({ error: 'Error fetching profile' })
+    }
+})
+
+router.put('/profile', verifyToken, async (request: AuthRequest, response: Response) => {
+    try {
+        const { username } = request.body
+        if (!username) {
+            response.status(400).json({ error: 'Please enter username' })
+            return
+        }
+
+        const existingUser: IUser | null = await User.findOne({ username })
+        if (existingUser && existingUser._id !== request.user?.id) {
+            response.status(400).json({ error: 'Username is already taken'})
+            return
+        }
+
+        const user: IUser | null = await User.findByIdAndUpdate(
+            request.user?.id,
+            { username },
+            { new: true } 
+        )
+        if (!user) {
+            response.status(404).json({ error: 'User not found' })
+            return
+        }
+
+        response.status(200).json({ message: 'Profile updated successfully', username: user.username })
+    } catch (error) {
+        response.status(500).json({ error: 'Error updating profile' })
     }
 })
 

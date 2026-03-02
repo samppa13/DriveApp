@@ -33,37 +33,23 @@ router.get('/:id', verifyToken, async (request: AuthRequest, response: Response)
     }
 })
 
-router.get('/:filename/file', verifyToken, async (request: AuthRequest, response: Response) => {
+router.get('/:id/file', verifyToken, async (request: AuthRequest, response: Response) => {
     try {
-        const { filename } = request.params
-        const userId = request.user?.id
-
-        if (!filename || Array.isArray(filename)) {
-            response.status(400).json({ message: 'Invalid filename' })
-            return
-        }
-
-        const image = await ImageModel.findOne({ name: filename, isDeleted: false })
+        const image = await ImageModel.findOne({
+            _id: request.params.id,
+            isDeleted: false,
+            $or: [
+                { user: request.user?.id },
+                { permissions: request.user?.id }
+            ]
+        })
         if (!image) {
             response.status(404).json({ error: 'Image not found' })
             return
         }
-        
-        const isOwner = image.user.toString() === userId
-        const isSharedWithUser = image.permissions.some(
-            (id) => id.toString() === userId
-        )
-        if (!isOwner && !isSharedWithUser) {
-            response.status(403).json({ error: 'Not allowed' })
-            return
-        }
-        if (filename.includes('..') || filename.includes('/')) {
-            response.status(400).json({ error: 'Invalid filename' })
-            return
-        }
 
         const imagesDir = path.resolve(__dirname, `../../../public/images/${image.user}`)
-        const filePath = path.resolve(imagesDir, filename)
+        const filePath = path.resolve(imagesDir, image.name)
         if (!filePath.startsWith(imagesDir)) {
             response.status(400).json({ error: 'Invalid path' })
             return

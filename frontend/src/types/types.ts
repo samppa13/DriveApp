@@ -11,6 +11,7 @@ export interface ISlide {
 export interface IUser {
     _id: string
     username: string
+    profileImage?: string | null
 }
 
 export interface IDocument {

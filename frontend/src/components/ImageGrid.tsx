@@ -1,13 +1,14 @@
 import type React from 'react'
-import type { IDocument } from '../types/types'
 import { useState, useEffect, useContext, useRef } from 'react'
 import { AuthContext } from '../context/AuthContext'
 
 interface ImageGridProps {
-    image: IDocument
+    name: string
+    imgUrl: string
+    isProfile: boolean
 }
 
-const ImageGrid: React.FC<ImageGridProps> = ({ image }) => {
+const ImageGrid: React.FC<ImageGridProps> = ({ name, imgUrl, isProfile }) => {
     const [imgSrc, setImgSrc] = useState<string>('')
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
@@ -15,13 +16,13 @@ const ImageGrid: React.FC<ImageGridProps> = ({ image }) => {
     const auth = useContext(AuthContext)
 
     useEffect(() => {
-        if (!image.name) {
+        if (!name || !imgUrl ) {
             return
         }
 
         const fetchImage = async () => {
             try {
-                const response = await fetch(`http://localhost:9000/api/images/${image.name}/file`, {
+                const response = await fetch(imgUrl, {
                     headers: {
                         Authorization: `Bearer ${auth.token}`
                     }
@@ -48,7 +49,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({ image }) => {
                 URL.revokeObjectURL(imgRef.current);
             }
         }
-    }, [image.path])
+    }, [name, imgUrl])
 
     if (errorMessage) {
         return (
@@ -63,7 +64,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({ image }) => {
             {imgSrc ? (
                 <img
                     src={imgSrc}
-                    alt={image.name}
+                    alt={name}
                     style={{
                         width: 'auto',
                         height: 'auto',
@@ -74,9 +75,12 @@ const ImageGrid: React.FC<ImageGridProps> = ({ image }) => {
             ) : (
                 <p>Loading image...</p>
             )}
-            <p>
-                {image.name}
-            </p>
+            {
+                !isProfile
+                && <p>
+                    {name}
+                </p>
+            }
         </div>
     )
 }

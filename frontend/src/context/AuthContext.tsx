@@ -7,6 +7,9 @@ interface AuthContextSettings {
     loading: boolean
     login: (username: string, password: string) => Promise<void>
     logout: () => void
+    uploadImage: (formData: FormData) => Promise<string>
+    deleteImage: () => Promise<string>
+    updateProfile: (username: string) => Promise<string>
 }
 
 export const AuthContext = createContext<AuthContextSettings>({
@@ -17,6 +20,15 @@ export const AuthContext = createContext<AuthContextSettings>({
         throw new Error('AuthContext not initialized')
     },
     logout: () => {
+        throw new Error('AuthContext not initialized')
+    },
+    uploadImage: () => {
+        throw new Error('AuthContext not initialized')
+    },
+    deleteImage: () => {
+        throw new Error('AuthContext not initialized')
+    },
+    updateProfile: () => {
         throw new Error('AuthContext not initialized')
     }
 })
@@ -33,15 +45,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             return
         }
 
-        try {
-            const decoded = JSON.parse(atob(storedToken.split('.')[1]))
-            setToken(storedToken)
-            setUser({ _id: decoded.id, username: decoded.username })
-        } catch (error) {
-            localStorage.removeItem('token')
-        } finally {
-            setLoading(false)
+        setToken(storedToken)
+
+        const fetchProfile = async () => {
+            try {
+                const response = await fetch('http://localhost:9000/api/users/profile', {
+                    headers: {
+                        Authorization: `Bearer ${storedToken}`
+                    }
+                })
+
+                const data = await response.json()
+                if (!response.ok) {
+                    throw new Error(data.error)
+                }
+
+                setUser(data)
+            } catch (error) {
+                localStorage.removeItem('token')
+                setToken(null)
+                setUser(null)
+            } finally {
+                setLoading(false)
+            }
         }
+
+        fetchProfile()
     }, [])
 
     const login = async (username: string, password: string) => {
@@ -78,13 +107,81 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         localStorage.removeItem('token')
     }
 
+    const uploadImage = async (formData: FormData) => {
+        const response: Response = await fetch('http://localhost:9000/api/users/profile/image/upload', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: formData
+        })
+
+        const data = await response.json()
+        if (!response.ok) {
+            throw new Error(data.error || 'Error uploading profile image')
+        }
+
+        setUser((prevUser) => prevUser
+            ? { ...prevUser, profileImage: data.filename }
+            : prevUser
+        )
+        return data.message
+    }
+
+    const deleteImage = async () => {
+        const response: Response = await fetch('http://localhost:9000/api/users/profile/image', {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
+
+        const data = await response.json()
+        if (!response.ok) {
+            throw new Error(data.error || 'Error deleting profile image')
+        }
+
+        setUser((prevUser) => prevUser
+            ? { ...prevUser, profileImage: null }
+            : prevUser
+        )
+        return data.message
+    }
+
+    const updateProfile = async (username: string) => {
+        const response: Response = await fetch('http://localhost:9000/api/users/profile', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                username
+            })
+        })
+
+        const data = await response.json()
+        if (!response.ok) {
+            throw new Error(data.error || 'Error updating profile')
+        }
+
+        setUser((prevUser) => prevUser
+            ? { ...prevUser, username: data.username }
+            : prevUser
+        )
+        return data.message
+    }
+
     return (
         <AuthContext.Provider value={{
             user,
             token,
             loading,
             login,
-            logout
+            logout,
+            uploadImage,
+            deleteImage,
+            updateProfile
         }}>
             {children}
         </AuthContext.Provider>

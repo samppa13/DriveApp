@@ -37,6 +37,11 @@ const Header = () => {
                                     Trash
                                 </Link>
                             </li>
+                            <li>
+                                <Link to='/profile'>
+                                    Profile
+                                </Link>
+                            </li>
                         </>
                     )
                     : (
