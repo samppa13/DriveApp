@@ -1,8 +1,11 @@
+import '../styles/MyDrive.css'
 import React, { useContext, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DocumentContext } from '../context/DocumentContext'
 import type { IDocument, IUser } from '../types/types'
 import { AuthContext } from '../context/AuthContext'
+import { Button, Dropdown, Pagination, Table } from 'react-bootstrap'
+import 'bootstrap/dist/css/bootstrap.min.css'
 
 interface ISelectedUser {
     docId: string
@@ -298,20 +301,29 @@ const MyDrive = () => {
     return (
         <div>
             <div>
-                <select
-                    name='create-document'
-                    id='create-document'
-                    value={docType}
-                    onChange={(event) => setDocType(event.target.value)}
+                <Dropdown data-bs-theme='dark'>
+                    <Dropdown.Toggle id='dropdown-button-dark' variant='secondary'>
+                        {docType ? docType : 'Select document type'}
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu>
+                        <Dropdown.Item onClick={() => setDocType('textdocument')}>
+                            Text document
+                        </Dropdown.Item>
+                        <Dropdown.Item onClick={() => setDocType('presentationdocument')}>
+                            Presentation document
+                        </Dropdown.Item>
+                        <Dropdown.Item onClick={() => setDocType('spreadsheetdocument')}>
+                            Spreadsheet document
+                        </Dropdown.Item>
+                    </Dropdown.Menu>
+                </Dropdown>
+                <Button
+                    variant='dark'
+                    onClick={handleCreateDoc}
+                    disabled={!docType}
                 >
-                    <option value=''>Select document type</option>
-                    <option value='textdocument'>Text document</option>
-                    <option value='presentationdocument'>Presentation document</option>
-                    <option value='spreadsheetdocument'>Spreadsheet document</option>
-                </select>
-                <button onClick={handleCreateDoc}>
                     Create a new document
-                </button>
+                </Button>
                 <div>
                     <form onSubmit={handleUploadImage}>
                         <input
@@ -326,25 +338,42 @@ const MyDrive = () => {
                                 }
                             }}
                         />
-                        <button type='submit' disabled={isUploading}>
+                        <Button variant='dark' type='submit' disabled={isUploading}>
                             {isUploading ? 'Uploading...' : 'Upload'}
-                        </button>
+                        </Button>
                     </form>
                 </div>
                 <label htmlFor='sort'>Sort</label>
-                <select
-                    name='sort'
-                    id='sort'
-                    value={sortTerm}
-                    onChange={(event) => setSortTerm(event.target.value)}
-                >
-                    <option value='created-desc'>Created (new first)</option>
-                    <option value='created-asc'>Created (oldest first)</option>
-                    <option value='updated-desc'>Updated (new first)</option>
-                    <option value='updated-asc'>Updated (oldest first)</option>
-                    <option value='name-asc'>Name (A-Z)</option>
-                    <option value='name-desc'>Name (Z-A)</option>
-                </select>
+                <Dropdown id='sort'>
+                    <Dropdown.Toggle variant='secondary' id='dropdown-sort'>
+                        {sortTerm === 'created-desc' && 'Created (new first)'}
+                        {sortTerm === 'created-asc' && 'Created (oldest first)'}
+                        {sortTerm === 'updated-desc' && 'Updated (new first)'}
+                        {sortTerm === 'updated-asc' && 'Updated (oldest first)'}
+                        {sortTerm === 'name-asc' && 'Name (A-Z)'}
+                        {sortTerm === 'name-desc' && 'Name (Z-A)'}
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu>
+                        <Dropdown.Item onClick={() => setSortTerm('created-desc')}>
+                            Created (new first)
+                        </Dropdown.Item>
+                        <Dropdown.Item onClick={() => setSortTerm('created-asc')}>
+                            Created (oldest first)
+                        </Dropdown.Item>
+                        <Dropdown.Item onClick={() => setSortTerm('updated-desc')}>
+                            Updated (new first)
+                        </Dropdown.Item>
+                        <Dropdown.Item onClick={() => setSortTerm('updated-asc')}>
+                            Updated (oldest first)
+                        </Dropdown.Item>
+                        <Dropdown.Item onClick={() => setSortTerm('name-asc')}>
+                            Name (A-Z)
+                        </Dropdown.Item>
+                        <Dropdown.Item onClick={() => setSortTerm('name-desc')}>
+                            Name (Z-A)
+                        </Dropdown.Item>
+                    </Dropdown.Menu>
+                </Dropdown>
                 {
                     message
                     && <p style={{ color: 'green' }}>
@@ -376,24 +405,27 @@ const MyDrive = () => {
                     </h2>
                 ) : (
                     <>
-                        <div>
-                            <table>
+                        <div className='table-wrapper'>
+                            <Table striped bordered hover variant='dark'>
                                 <thead>
                                     <tr>
+                                        <th>Document type</th>
                                         <th>Name</th>
                                         <th>Created</th>
                                         <th>Modified</th>
                                         <th></th>
-                                        <th></th>
-                                        <th></th>
                                         <th>View link</th>
-                                        <th></th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {
                                         currentDocs.map((document) => (
                                             <tr key={document._id}>
+                                                <th>
+                                                    {
+                                                        document.type
+                                                    }
+                                                </th>
                                                 <th scope='row' onClick={() => handleEditDoc(document._id, document.type)}>
                                                     {document.type === 'Image'
                                                         ? document.originalName
@@ -411,40 +443,60 @@ const MyDrive = () => {
                                                     }
                                                 </td>
                                                 <td>
-                                                    <button onClick={() => handleDeleteDoc(document._id)}>
-                                                        Delete
-                                                    </button>
-                                                </td>
-                                                <td>
-                                                    <select
-                                                        value={selectedUsers.find((item) => item.docId === document._id)?.userId || ''}
-                                                        onChange={(event) => handleSelectUser(document._id!, event.target.value)}
-                                                    >
-                                                        <option value=''>
-                                                            Select user
-                                                        </option>
-                                                        {
-                                                            users.map((user) => (
-                                                                <option
-                                                                    key={`${document._id}-${user._id}`}
-                                                                    value={user._id}
+                                                    <Dropdown data-bs-theme='dark'>
+                                                        <Dropdown.Toggle
+                                                            id='dropdown-button-dark'
+                                                            variant='secondary'
+                                                        >
+                                                            Actions
+                                                        </Dropdown.Toggle>
+                                                        <Dropdown.Menu>
+                                                            <Dropdown.Item>
+                                                                <button onClick={() => handleDeleteDoc(document._id)}>
+                                                                    Delete
+                                                                </button>
+                                                            </Dropdown.Item>
+                                                            <Dropdown.Item as='div' onClick={(event) => event.stopPropagation()}>
+                                                                <select
+                                                                    value={selectedUsers.find((item) => item.docId === document._id)?.userId || ''}
+                                                                    onChange={(event) => handleSelectUser(document._id!, event.target.value)}
                                                                 >
-                                                                    {user.username}
-                                                                </option>
-                                                            ))
-                                                        }
-                                                    </select>
-                                                    <button onClick={() => handleShareDoc(document._id)}>
-                                                        Share
-                                                    </button>
-                                                </td>
-                                                <td>
-                                                    {
-                                                        document.type !== 'Image'
-                                                        && <button onClick={() => handleCreateViewLink(document._id)}>
-                                                                Create view link
-                                                            </button>
-                                                    }
+                                                                    <option value=''>
+                                                                        Select user
+                                                                    </option>
+                                                                    {
+                                                                        users.map((user) => (
+                                                                            <option
+                                                                                key={`${document._id}-${user._id}`}
+                                                                                value={user._id}
+                                                                            >
+                                                                                {user.username}
+                                                                            </option>
+                                                                        ))
+                                                                    }
+                                                                </select>
+                                                                <button onClick={() => handleShareDoc(document._id)}>
+                                                                    Share
+                                                                </button>
+                                                            </Dropdown.Item>
+                                                            {
+                                                                document.type !== 'Image'
+                                                                && <Dropdown.Item>
+                                                                    <button onClick={() => handleCreateViewLink(document._id)}>
+                                                                        Create view link
+                                                                    </button>
+                                                                </Dropdown.Item>
+                                                            }
+                                                            {
+                                                                document.type !== 'Image'
+                                                                && <Dropdown.Item>
+                                                                    <button onClick={() => handleCloneDoc(document._id)}>
+                                                                        Clone
+                                                                    </button>
+                                                                </Dropdown.Item>
+                                                            }
+                                                        </Dropdown.Menu>
+                                                    </Dropdown>
                                                 </td>
                                                 <td>
                                                     {
@@ -454,43 +506,35 @@ const MyDrive = () => {
                                                         </p>
                                                     }
                                                 </td>
-                                                <td>
-                                                    {
-                                                        document.type !== 'Image'
-                                                        && <button onClick={() => handleCloneDoc(document._id)}>
-                                                            Clone
-                                                        </button>
-                                                    }
-                                                </td>
                                             </tr>
                                         ))
                                     }
                                 </tbody>
-                            </table>
+                            </Table>
                         </div>
-                        <div>
-                            <button
+                        <Pagination size='sm'>
+                            <Pagination.Item
                                 onClick={() => setCurrentPage((prevCurrentPage) => prevCurrentPage - 1)}
                                 disabled={currentPage === 1}
                             >
                                 Previous
-                            </button>
+                            </Pagination.Item>
                             {getPageNumbers().map((pageNumber) => (
-                                <button
+                                <Pagination.Item
                                     key={pageNumber}
                                     onClick={() => setCurrentPage(pageNumber)}
                                     disabled={currentPage === pageNumber}
                                 >
                                     {pageNumber}
-                                </button>
+                                </Pagination.Item>
                             ))}
-                            <button
+                            <Pagination.Item
                                 onClick={() => setCurrentPage((prevCurrentPage) => prevCurrentPage + 1)}
                                 disabled={currentPage === totalPages}
                             >
                                 Next
-                            </button>
-                        </div>
+                            </Pagination.Item>
+                        </Pagination>
                     </>
                 )}
             </div>

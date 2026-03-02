@@ -1,7 +1,10 @@
+import '../styles/SpreadSheetDocumentEditor.css'
 import type React from 'react'
 import type { IDocument, INewDocument } from '../types/types'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Button, Form, Table } from 'react-bootstrap'
+import 'bootstrap/dist/css/bootstrap.min.css'
 
 interface SpreadsheetDocumentEditorProps {
     document?: IDocument
@@ -164,26 +167,31 @@ const SpreadsheetDocumentEditor: React.FC<SpreadsheetDocumentEditorProps> = ({ d
 
     return (
         <div>
-            <input
-                type="text"
-                name="name"
-                id="name"
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-            />
+            <Form>
+                <Form.Group>
+                    <Form.Control
+                        type="text"
+                        name="name"
+                        id="name"
+                        value={name}
+                        onChange={(event) => setName(event.target.value)}
+                        placeholder='Document name'
+                    />
+                </Form.Group>
+            </Form>
             {
                 id
                 && handleDelete
-                && <button onClick={() => handleDelete(id)}>
+                && <Button variant='dark' onClick={() => handleDelete(id)}>
                     Delete
-                </button>
+                </Button>
             }
-            <button onClick={() => navigate('/')}>
+            <Button variant='dark' onClick={() => navigate('/')}>
                 Back to home
-            </button>
-            <button onClick={handleSaveClick}>
+            </Button>
+            <Button variant='dark' onClick={handleSaveClick}>
                 Save
-            </button>
+            </Button>
             {
                 message
                 && <p style={{ color: 'green' }}>
@@ -197,7 +205,8 @@ const SpreadsheetDocumentEditor: React.FC<SpreadsheetDocumentEditorProps> = ({ d
                 </p>
             }
             <div>
-                <input
+                <Form.Control
+                    type='text'
                     value={activeCell
                         ? cells[activeCell.row][activeCell.col]
                         : ''
@@ -205,67 +214,69 @@ const SpreadsheetDocumentEditor: React.FC<SpreadsheetDocumentEditorProps> = ({ d
                     onChange={(event) => handleFormulaChange(event.target.value)}
                 />
             </div>
-            <table
-                style={{
-                    borderCollapse: 'collapse'
-                }}
-            >
-                <thead>
-                    <tr>
-                        <th></th>
-                        {cells[0]?.map((_, colIndex) => (
-                            <th key={colIndex}>
-                                {indexToColumn(colIndex)}
-                            </th>
-                        ))}
-                    </tr>
-                </thead>
-                <tbody>
-                    {cells.map((row, rowIndex) => (
-                        <tr key={rowIndex}>
-                            <th>
-                                {rowIndex + 1}
-                            </th>
-                            {row.map((_, colIndex) => (
-                                <td
-                                    key={colIndex}
-                                    style={{
-                                        border: '1px solid #ccc'
-                                    }}
-                                >
-                                    <div
-                                        onClick={() => setActiveCell({ row: rowIndex, col: colIndex })}
-                                        style={{
-                                            width: '100%',
-                                            height: '100%',
-                                            minHeight: '35px',
-                                            minWidth: '60px',
-                                            boxSizing: 'border-box',
-                                            padding: '4px',
-                                            cursor: 'pointer',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            outline:
-                                                activeCell?.row === rowIndex &&
-                                                activeCell?.col === colIndex
-                                                    ? '2px solid blue'
-                                                    : 'none'
-                                        }}
-                                    >
-                                        {computeValue(rowIndex, colIndex)}
-                                    </div>
-                                </td>
+            <div className='table-wrapper'>
+                <Table
+                    style={{
+                        borderCollapse: 'collapse'
+                    }}
+                >
+                    <thead>
+                        <tr>
+                            <th></th>
+                            {cells[0]?.map((_, colIndex) => (
+                                <th key={colIndex}>
+                                    {indexToColumn(colIndex)}
+                                </th>
                             ))}
                         </tr>
-                    ))}
-                </tbody>
-            </table>
-            <button onClick={handleAddRow}>
+                    </thead>
+                    <tbody>
+                        {cells.map((row, rowIndex) => (
+                            <tr key={rowIndex}>
+                                <th>
+                                    {rowIndex + 1}
+                                </th>
+                                {row.map((_, colIndex) => (
+                                    <td
+                                        key={colIndex}
+                                        style={{
+                                            border: '1px solid #ccc'
+                                        }}
+                                    >
+                                        <div
+                                            onClick={() => setActiveCell({ row: rowIndex, col: colIndex })}
+                                            style={{
+                                                width: '100%',
+                                                height: '100%',
+                                                minHeight: '35px',
+                                                minWidth: '60px',
+                                                boxSizing: 'border-box',
+                                                padding: '4px',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                outline:
+                                                    activeCell?.row === rowIndex &&
+                                                    activeCell?.col === colIndex
+                                                        ? '2px solid blue'
+                                                        : 'none'
+                                            }}
+                                        >
+                                            {computeValue(rowIndex, colIndex)}
+                                        </div>
+                                    </td>
+                                ))}
+                            </tr>
+                        ))}
+                    </tbody>
+                </Table>
+            </div>
+            <Button variant='dark' onClick={handleAddRow}>
                 Add row
-            </button>
-            <button onClick={handleAddColumn}>
+            </Button>
+            <Button variant='dark' onClick={handleAddColumn}>
                 Add column
-            </button>
+            </Button>
         </div>
     )
 }

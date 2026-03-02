@@ -1,6 +1,7 @@
 import React, { useContext, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AuthContext } from '../context/AuthContext'
+import { Button, Form } from 'react-bootstrap'
 
 const RegisterPage = () => {
     const [username, setUsername] = useState<string>('')
@@ -66,29 +67,29 @@ const RegisterPage = () => {
                 message
                 && <p style={{ color: message === 'User registered successfully' ? 'green' : 'red' }}>{message}</p>
             }
-            <form onSubmit={handleRegister}>
-                <div>
-                    <label htmlFor='username'>Username</label>
-                    <input
+            <Form onSubmit={handleRegister}>
+                <Form.Group>
+                    <Form.Label htmlFor='username'>Username</Form.Label>
+                    <Form.Control
                         type='text'
                         name='username'
                         id='username'
                         onChange={(event) => setUsername(event.target.value)}
                         value={username}
                     />
-                </div>
-                <div>
-                    <label htmlFor='password'>Password</label>
-                    <input
+                </Form.Group>
+                <Form.Group>
+                    <Form.Label htmlFor='password'>Password</Form.Label>
+                    <Form.Control
                         type='password'
                         name='password'
                         id='password'
                         onChange={(event) => setPassword(event.target.value)}
                         value={password}
                     />
-                </div>
-                <button type='submit'>Register</button>
-            </form>
+                </Form.Group>
+                <Button variant='dark' type='submit'>Register</Button>
+            </Form>
         </div>
     )
 }

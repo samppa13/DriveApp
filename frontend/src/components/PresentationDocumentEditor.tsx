@@ -2,6 +2,8 @@ import type React from 'react'
 import type { IDocument, INewDocument, ISlide } from '../types/types'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Button, Form } from 'react-bootstrap'
+import 'bootstrap/dist/css/bootstrap.min.css'
 
 interface PresentationDocumentEditorProps {
     document?: IDocument
@@ -87,20 +89,21 @@ const PresentationDocumentEditor: React.FC<PresentationDocumentEditorProps> = ({
 
     return (
         <div>
-            <input
-                type='text'
-                name='name'
-                id='name'
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                placeholder='Document name'
-            />
-            <button onClick={handleAddSlide}>
-                Add slide
-            </button>
+            <Form>
+                <Form.Group>
+                    <Form.Control
+                        type="text"
+                        name="name"
+                        id="name"
+                        value={name}
+                        onChange={(event) => setName(event.target.value)}
+                        placeholder='Document name'
+                    />
+                </Form.Group>
+            </Form>
             {slides.map((slide, slideId) => (
                 <div key={slideId}>
-                    <input
+                    <Form.Control
                         type='text'
                         value={slide.title}
                         onChange={(event) =>
@@ -108,55 +111,65 @@ const PresentationDocumentEditor: React.FC<PresentationDocumentEditorProps> = ({
                         }
                         placeholder='Slide title'
                     />
-                    <ul>
+                    <ul className='list-unstyled'>
                         {slide.bullets.map((bullet, bulletId) => (
-                            <li key={bulletId}>
-                                <input
+                            <li
+                                key={bulletId}
+                                className='d-flex align-items-center gap-2 mb-2'
+                            >
+                                <span>.</span>
+                                <Form.Control
                                     type="text"
                                     value={bullet}
                                     onChange={(event) =>
                                         handleBullet(slideId, bulletId, event.target.value)
                                     }
+                                    className='flex-grow-1'
                                 />
-                                <button onClick={() =>
+                                <Button variant='dark' onClick={() =>
                                     handleDeleteBullet(slideId, bulletId)
                                 }>
                                     X
-                                </button>
+                                </Button>
                             </li>
                         ))}
                     </ul>
-                    <button onClick={() =>
+                    <Button variant='dark' onClick={() =>
                         handleAddBullet(slideId)
                     }>
                         Add bullet
-                    </button>
-                    <button onClick={() =>
+                    </Button>
+                    <Button variant='dark' onClick={() =>
                         handleDeleteSlide(slideId)
                     }>
                         Delete Slide
-                    </button>
+                    </Button>
                 </div>
             ))}
+            <div>
+                <Button variant='dark' onClick={handleAddSlide}>
+                    Add slide
+                </Button>
+            </div>
             {
                 id
                 && handleDelete
                 && (
-                    <button onClick={() => handleDelete(id)}>
+                    <Button variant='dark' onClick={() => handleDelete(id)}>
                         Delete
-                    </button>
+                    </Button>
                 )
             }
-            <button onClick={() => navigate('/')}>
+            <Button variant='dark' onClick={() => navigate('/')}>
                 Back to Home
-            </button>
-            <button onClick={handleSaveClick}>
+            </Button>
+            <Button variant='dark' onClick={handleSaveClick}>
                 Save
-            </button>
+            </Button>
             {handleStartSlideshow && (
-                <button onClick={handleStartSlideshow}>
+                <Button variant='dark' onClick={handleStartSlideshow}>
                     Start Slideshow
-                </button>
+                </Button>
             )}
             {
                 message

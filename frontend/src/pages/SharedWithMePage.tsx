@@ -1,7 +1,10 @@
+import '../styles/SharedWithMePage.css'
 import { useContext, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DocumentContext } from '../context/DocumentContext'
 import type { IDocument } from '../types/types'
+import { Pagination, Table } from 'react-bootstrap'
+import 'bootstrap/dist/css/bootstrap.min.css'
 
 const SharedWithMePage = () => {
     const [sortTerm, setSortTerm] = useState<string>('created-desc')
@@ -157,8 +160,8 @@ const SharedWithMePage = () => {
                 </h2>
             ) : (
                 <>
-                    <div>
-                        <table>
+                    <div className='table-wrapper'>
+                        <Table striped bordered hover variant='dark'>
                             <thead>
                                 <tr>
                                     <th>Name</th>
@@ -190,31 +193,31 @@ const SharedWithMePage = () => {
                                     ))
                                 }
                             </tbody>
-                        </table>
+                        </Table>
                     </div>
-                    <div>
-                        <button
+                    <Pagination size='sm'>
+                        <Pagination.Item
                             onClick={() => setCurrentPage((prevCurrentPage) => prevCurrentPage - 1)}
                             disabled={currentPage === 1}
                         >
                             Previous
-                        </button>
+                        </Pagination.Item>
                         {getPageNumbers().map((pageNumber) => (
-                            <button
+                            <Pagination.Item
                                 key={pageNumber}
                                 onClick={() => setCurrentPage(pageNumber)}
                                 disabled={currentPage === pageNumber}
                             >
                                 {pageNumber}
-                            </button>
+                            </Pagination.Item>
                         ))}
-                        <button
+                        <Pagination.Item
                             onClick={() => setCurrentPage((prevCurrentPage) => prevCurrentPage + 1)}
                             disabled={currentPage === totalPages}
                         >
                             Next
-                        </button>
-                    </div>
+                        </Pagination.Item>
+                    </Pagination>
                 </>
             )}
         </div>

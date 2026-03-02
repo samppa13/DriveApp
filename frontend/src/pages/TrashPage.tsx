@@ -1,7 +1,10 @@
+import '../styles/TrashPage.css'
 import { useContext, useEffect, useState } from 'react'
 import { AuthContext } from '../context/AuthContext'
 import type { IDocument } from '../types/types'
 import { DocumentContext } from '../context/DocumentContext'
+import { Button, Pagination, Table } from 'react-bootstrap'
+import 'bootstrap/dist/css/bootstrap.min.css'
 
 const TrashPage = () => {
     const [documents, setDocuments] = useState<IDocument[] | null>(null)
@@ -202,12 +205,12 @@ const TrashPage = () => {
                     </>
                 ) : (
                     <>
-                        <button onClick={handleDeleteAllDocs}>
+                        <Button variant='dark' onClick={handleDeleteAllDocs}>
                             Empty trash
-                        </button>
-                        <button onClick={handleRestoreDocs}>
+                        </Button>
+                        <Button variant='dark' onClick={handleRestoreDocs}>
                             Restore all documents
-                        </button>
+                        </Button>
                         {
                             message
                             && <p style={{ color: 'green' }}>
@@ -220,13 +223,14 @@ const TrashPage = () => {
                                 {error}
                             </p>
                         }
-                        <div>
-                            <table>
+                        <div className='table-wrapper'>
+                            <Table striped bordered hover variant='dark'>
                                 <thead>
                                     <tr>
                                         <th>Name</th>
                                         <th>Created</th>
                                         <th>Modified</th>
+                                        <th></th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -251,44 +255,44 @@ const TrashPage = () => {
                                                     }
                                                 </td>
                                                 <td>
-                                                    <button onClick={() => handleDeleteDoc(document._id)}>
+                                                    <Button variant='dark' onClick={() => handleDeleteDoc(document._id)}>
                                                         Delete
-                                                    </button>
+                                                    </Button>
                                                 </td>
                                                 <td>
-                                                    <button onClick={() => handleRestoreDoc(document._id)}>
+                                                    <Button variant='dark' onClick={() => handleRestoreDoc(document._id)}>
                                                         Restore
-                                                    </button>
+                                                    </Button>
                                                 </td>
                                             </tr>
                                         ))
                                     }
                                 </tbody>
-                            </table>
+                            </Table>
                         </div>
-                        <div>
-                            <button
+                        <Pagination size='sm'>
+                            <Pagination.Item
                                 onClick={() => setCurrentPage((prevCurrentPage) => prevCurrentPage - 1)}
                                 disabled={currentPage === 1}
                             >
                                 Previous
-                            </button>
+                            </Pagination.Item>
                             {getPageNumbers().map((pageNumber) => (
-                                <button
+                                <Pagination.Item
                                     key={pageNumber}
                                     onClick={() => setCurrentPage(pageNumber)}
                                     disabled={currentPage === pageNumber}
                                 >
                                     {pageNumber}
-                                </button>
+                                </Pagination.Item>
                             ))}
-                            <button
+                            <Pagination.Item
                                 onClick={() => setCurrentPage((prevCurrentPage) => prevCurrentPage + 1)}
                                 disabled={currentPage === totalPages}
                             >
                                 Next
-                            </button>
-                        </div>
+                            </Pagination.Item>
+                        </Pagination>
                     </>
                 )
             }

@@ -1,6 +1,9 @@
+import '../styles/Header.css'
 import { useContext } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { AuthContext } from '../context/AuthContext'
+import { Container, Nav, Navbar } from 'react-bootstrap'
+import 'bootstrap/dist/css/bootstrap.min.css'
 
 const Header = () => {
     const navigate = useNavigate()
@@ -12,54 +15,47 @@ const Header = () => {
     }
 
     return (
-        <div>
-            <ul>
-                {auth?.user
-                    ? (
-                        <>
-                            <li>
-                                <button onClick={handleLogout}>
-                                    Logout
-                                </button>
-                            </li>
-                            <li>
-                                <Link to='/'>
-                                    Own Drive
-                                </Link>
-                            </li>
-                            <li>
-                                <Link to='/shared-with-me'>
-                                    Shared with me
-                                </Link>
-                            </li>
-                            <li>
-                                <Link to='/trash'>
-                                    Trash
-                                </Link>
-                            </li>
-                            <li>
-                                <Link to='/profile'>
-                                    Profile
-                                </Link>
-                            </li>
-                        </>
-                    )
-                    : (
-                        <>
-                            <li>
-                                <Link to='/login'>
-                                    Login
-                                </Link>
-                            </li>
-                            <li>
-                                <Link to='/register'>
-                                    Register
-                                </Link>
-                            </li>
-                        </>
-                    )
-                }
-            </ul>
+        <div className='header'>
+            <Navbar bg='dark' data-bs-theme='dark'>
+                <Container>
+                    <Navbar.Toggle aria-controls='basic-navbar-nav' />
+                    <Navbar.Collapse id='basic-navbar-nav'>
+                        <Nav>
+                            {auth?.user
+                                ? (
+                                    <>
+                                        <Nav.Link onClick={handleLogout}>
+                                            Logout
+                                        </Nav.Link>
+                                        <Nav.Link href='/'>
+                                            Own Drive
+                                        </Nav.Link>
+                                        <Nav.Link href='/shared-with-me'>
+                                            Shared with me
+                                        </Nav.Link>
+                                        <Nav.Link href='/trash'>
+                                            Trash
+                                        </Nav.Link>
+                                        <Nav.Link href='/profile'>
+                                            Profile
+                                        </Nav.Link>
+                                    </>
+                                )
+                                : (
+                                    <>
+                                        <Nav.Link href='/login'>
+                                            Login
+                                        </Nav.Link>
+                                        <Nav.Link href='/register'>
+                                            Register
+                                        </Nav.Link>
+                                    </>
+                                )
+                            }
+                        </Nav>
+                    </Navbar.Collapse>
+                </Container>
+            </Navbar>
         </div>
     )
 }

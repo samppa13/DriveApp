@@ -1,3 +1,4 @@
+import './styles/App.css'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import RegisterPage from './pages/RegisterPage'
@@ -22,27 +23,29 @@ const App = () => {
     <AuthProvider>
       <DocumentProvider>
         <BrowserRouter>
-          <Header />
-          <Routes>
-            <Route element={<AuthRequire />}>
-              <Route path='/' element={<HomePage />} />
-              <Route path='/shared-with-me' element={<SharedWithMePage />} />
-              <Route path='/textdocuments/new' element={<TextDocumentEditorPage />} />
-              <Route path='/textdocuments/:id/edit' element={<TextDocumentEditorPage />} />
-              <Route path='/presentationdocuments/new' element={<PresentationDocumentEditorPage />} />
-              <Route path='/presentationdocuments/:id/edit' element={<PresentationDocumentEditorPage />} />
-              <Route path='/spreadsheetdocuments/new' element={<SpreadsheetDocumentEditorPage />} />
-              <Route path='/spreadsheetdocuments/:id/edit' element={<SpreadsheetDocumentEditorPage />} />
-              <Route path='/trash' element={<TrashPage />} />
-              <Route path='/images/:id/edit' element={<ImagePage />} />
-              <Route path='/profile' element={<ProfilePage />} />
-            </Route>
-            <Route path='/login' element={<LoginPage />} />
-            <Route path='/register' element={<RegisterPage />} />
-            <Route path='/textdocuments/view/:viewToken' element={<SharedTextDocumentPage />} />
-            <Route path='/presentationdocuments/view/:viewToken' element={<SharedPresentationDocumentPage />} />
-            <Route path='/spreadsheetdocuments/view/:viewToken' element={<SharedSpreadsheetDocumentPage />} />
-          </Routes>
+          <div className='container'>
+            <Header />
+            <Routes>
+              <Route element={<AuthRequire />}>
+                <Route path='/' element={<HomePage />} />
+                <Route path='/shared-with-me' element={<SharedWithMePage />} />
+                <Route path='/textdocuments/new' element={<TextDocumentEditorPage />} />
+                <Route path='/textdocuments/:id/edit' element={<TextDocumentEditorPage />} />
+                <Route path='/presentationdocuments/new' element={<PresentationDocumentEditorPage />} />
+                <Route path='/presentationdocuments/:id/edit' element={<PresentationDocumentEditorPage />} />
+                <Route path='/spreadsheetdocuments/new' element={<SpreadsheetDocumentEditorPage />} />
+                <Route path='/spreadsheetdocuments/:id/edit' element={<SpreadsheetDocumentEditorPage />} />
+                <Route path='/trash' element={<TrashPage />} />
+                <Route path='/images/:id/edit' element={<ImagePage />} />
+                <Route path='/profile' element={<ProfilePage />} />
+              </Route>
+              <Route path='/login' element={<LoginPage />} />
+              <Route path='/register' element={<RegisterPage />} />
+              <Route path='/textdocuments/view/:viewToken' element={<SharedTextDocumentPage />} />
+              <Route path='/presentationdocuments/view/:viewToken' element={<SharedPresentationDocumentPage />} />
+              <Route path='/spreadsheetdocuments/view/:viewToken' element={<SharedSpreadsheetDocumentPage />} />
+            </Routes>
+          </div>
         </BrowserRouter>
       </DocumentProvider>
     </AuthProvider>

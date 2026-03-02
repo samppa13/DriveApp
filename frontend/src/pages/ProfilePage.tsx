@@ -1,6 +1,8 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { AuthContext } from '../context/AuthContext'
 import ImageGrid from '../components/ImageGrid'
+import { Button, Form } from 'react-bootstrap'
+import 'bootstrap/dist/css/bootstrap.min.css'
 
 const ProfilePage = () => {
     const [username, setUsername] = useState<string>('')
@@ -109,11 +111,11 @@ const ProfilePage = () => {
             }
             {
                 auth.user?.profileImage
-                && <button onClick={handleDeleteImage}>
+                && <Button variant='dark' onClick={handleDeleteImage}>
                     Delete profile image
-                </button>
+                </Button>
             }
-            <button onClick={() => setIsEditImage(!isEditImage)}>
+            <Button variant='dark' onClick={() => setIsEditImage(!isEditImage)}>
                 {isEditImage
                     ? 'Cancel'
                     : (auth.user?.profileImage
@@ -121,42 +123,47 @@ const ProfilePage = () => {
                         : 'Add profile image'
                     )
                 }
-            </button>
+            </Button>
             {
                 isEditImage
                 && <div>
-                    <form onSubmit={handleUploadImage}>
-                        <input
-                            type='file'
-                            name='image'
-                            id='image'
-                            accept='image/*'
-                            required
-                            onChange={(event) => {
-                                if (event.target.files && event.target.files.length > 0) {
-                                    setFile(event.target.files[0])
-                                }
-                            }}
-                        />
-                        <button type='submit' disabled={isUploading}>
+                    <Form onSubmit={handleUploadImage}>
+                        <Form.Group>
+                            <Form.Control
+                                type='file'
+                                name='image'
+                                id='image'
+                                accept='image/*'
+                                required
+                                onChange={(event) => {
+                                    const target = event.target as HTMLInputElement
+                                    if (target.files && target.files.length > 0) {
+                                        setFile(target.files[0])
+                                    }
+                                }}
+                            />
+                        </Form.Group>
+                        <Button variant='dark' type='submit' disabled={isUploading}>
                             {isUploading ? 'Uploading...' : 'Upload'}
-                        </button>
-                    </form>
+                        </Button>
+                    </Form>
                 </div>
             }
-            <form onSubmit={handleUpdateProfile}>
-                <label htmlFor="username">Username:</label>
-                <input
-                    type="text"
-                    name="username"
-                    id="username"
-                    value={username}
-                    onChange={(event) => setUsername(event.target.value)}
-                />
-                <button type='submit'>
+            <Form onSubmit={handleUpdateProfile}>
+                <Form.Group>
+                    <Form.Label htmlFor="username">Username:</Form.Label>
+                    <Form.Control
+                        type="text"
+                        name="username"
+                        id="username"
+                        value={username}
+                        onChange={(event) => setUsername(event.target.value)}
+                    />
+                </Form.Group>
+                <Button variant='dark' type='submit'>
                     Save
-                </button>
-            </form>
+                </Button>
+            </Form>
             {
                 message
                 && <p style={{ color: 'green' }}>

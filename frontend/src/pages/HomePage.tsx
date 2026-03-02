@@ -1,3 +1,4 @@
+import '../styles/HomePage.css'
 import { useContext } from 'react'
 import { AuthContext } from '../context/AuthContext'
 import MyDrive from '../components/MyDrive'
@@ -9,7 +10,7 @@ const HomePage = () => {
     const imgUrl: string = 'http://localhost:9000/api/users/profile/image/file'
 
     return (
-        <div>
+        <div className='home-container'>
             {
                 auth.user?.profileImage
                 && <ImageGrid
