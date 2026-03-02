@@ -4,6 +4,8 @@ import { AuthContext } from '../context/AuthContext'
 import MyDrive from '../components/MyDrive'
 import ImageGrid from '../components/ImageGrid'
 
+// HomePage component that shows user's profile image,
+// a welcome message, and the MyDrive component
 const HomePage = () => {
     const auth = useContext(AuthContext)
 

@@ -12,6 +12,7 @@ const multer_config_1 = __importDefault(require("../middleware/multer-config"));
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
 const router = (0, express_1.Router)();
+// Register a new user
 router.post('/register', async (request, response) => {
     try {
         const { username, password } = request.body;
@@ -36,6 +37,7 @@ router.post('/register', async (request, response) => {
         response.status(500).json({ error: 'Error registering user' });
     }
 });
+// Login a user and return a JWT token
 router.post('/login', async (request, response) => {
     try {
         const { username, password } = request.body;
@@ -59,6 +61,7 @@ router.post('/login', async (request, response) => {
         response.status(500).json({ error: 'Error logging in' });
     }
 });
+// Get all users (without passwords)
 router.get('/', auth_1.verifyToken, async (request, response) => {
     try {
         const users = await User_1.User.find().select('-password');
@@ -68,6 +71,7 @@ router.get('/', auth_1.verifyToken, async (request, response) => {
         response.status(500).json({ error: 'Error while fetching users' });
     }
 });
+// Get logged-in user's profile image file
 router.get('/profile/image/file', auth_1.verifyToken, async (request, response) => {
     try {
         const user = await User_1.User.findById(request.user?.id);
@@ -98,6 +102,7 @@ router.get('/profile/image/file', auth_1.verifyToken, async (request, response) 
         response.status(500).json({ error: 'Error feching image' });
     }
 });
+// Upload a new profile image for logged-in user
 router.post('/profile/image/upload', auth_1.verifyToken, multer_config_1.default.single('image'), async (request, response) => {
     try {
         if (!request.file) {
@@ -124,6 +129,7 @@ router.post('/profile/image/upload', auth_1.verifyToken, multer_config_1.default
         response.status(500).json({ error: 'Error uploading image' });
     }
 });
+// Delete logged-in user's profile image
 router.delete('/profile/image', auth_1.verifyToken, async (request, response) => {
     try {
         const user = await User_1.User.findById(request.user?.id);
@@ -148,6 +154,7 @@ router.delete('/profile/image', auth_1.verifyToken, async (request, response) =>
         response.status(500).json({ error: 'Error deleting profile image' });
     }
 });
+// Get logged-in user's profile information
 router.get('/profile', auth_1.verifyToken, async (request, response) => {
     try {
         const user = await User_1.User.findById(request.user?.id).select('-password');
@@ -161,6 +168,7 @@ router.get('/profile', auth_1.verifyToken, async (request, response) => {
         response.status(500).json({ error: 'Error fetching profile' });
     }
 });
+// Update logged-in user's profile information
 router.put('/profile', auth_1.verifyToken, async (request, response) => {
     try {
         const { username } = request.body;

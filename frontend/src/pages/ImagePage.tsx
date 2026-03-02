@@ -18,10 +18,12 @@ const ImagePage = () => {
     const docs = useContext(DocumentContext)
     const docType = 'Image'
 
+    // If docs context is not loaded, return nothing
     if (!docs) {
         return null
     }
 
+    // Clear success message after 2 seconds
     useEffect(() => {
         if (!message) {
             return
@@ -33,6 +35,7 @@ const ImagePage = () => {
         return () => clearTimeout(timer)
     }, [message])
 
+    // Clear error message after 2 seconds
     useEffect(() => {
         if (!errorMessage) {
             return
@@ -44,6 +47,7 @@ const ImagePage = () => {
         return () => clearTimeout(timer)
     }, [errorMessage])
 
+    // Fetch the image document when ID or docs.loading changes
     useEffect(() => {
         if (!id || docs.loading) {
             return
@@ -69,17 +73,20 @@ const ImagePage = () => {
         fetchImage()
     }, [id, docs.loading])
 
+    // Redirect if the fetched document is not an image
     useEffect(() => {
         if (id && image && image.type !== 'Image') {
             navigate(`/${image.type.toLowerCase()}s/${id}`)
         }
     }, [id, image])
 
+    // Handle deleting the image
     const handleDelete = async (id: string) => {
         try {
             const mess = await docs.deleteDocument(id)
             setMessage(mess)
             setNotFound(true)
+            // Redirect to homepage after 2 seconds
             setTimeout(() => {
                 navigate('/')
             }, 2000)
@@ -88,6 +95,7 @@ const ImagePage = () => {
         }
     }
 
+    // Render if image is not found
     if (notFound) {
         return (
             <div>
@@ -104,9 +112,13 @@ const ImagePage = () => {
             </div>
         )
     }
+
+    // Show loading state
     if (isFetching || docs.loading) {
         return <p>Loading...</p>
     }
+
+    // Show error if ID or image is missing
     if (!id || !image) {
         return (
             <p style={{ color: 'red' }}>
@@ -115,7 +127,9 @@ const ImagePage = () => {
         )
     }
 
+    // Check if current user owns this image
     const isOwner: boolean = image?.user === auth.user?._id
+    // Construct image URL
     const imgUrl: string = `http://localhost:9000/api/images/${image._id}/file`
 
     return (
@@ -126,11 +140,13 @@ const ImagePage = () => {
                     {errorMessage}
                 </p>
             }
+            {/* Display the image grid */}
             <ImageGrid
                 name={image.name}
                 imgUrl={imgUrl}
                 isProfile={false}
             />
+            {/* Show delete button only to owner */}
             {
                 isOwner
                 && <button onClick={() => handleDelete(id)}>

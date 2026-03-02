@@ -26,6 +26,7 @@ const TextDocumentEditorPage = () => {
         return null
     }
 
+    // Clear success message after 2 seconds
     useEffect(() => {
         if (!message) {
             return
@@ -37,6 +38,7 @@ const TextDocumentEditorPage = () => {
         return () => clearTimeout(timer)
     }, [message])
 
+    // Clear error message after 2 seconds
     useEffect(() => {
         if (!errorMessage) {
             return
@@ -48,6 +50,7 @@ const TextDocumentEditorPage = () => {
         return () => clearTimeout(timer)
     }, [errorMessage])
 
+    // Fetch document and add lock when id changes
     useEffect(() => {
         if (!id || docs.loading) {
             return
@@ -80,6 +83,7 @@ const TextDocumentEditorPage = () => {
 
         fetchTextDoc()
 
+        // Release lock when component unmounts
         return () => {
             const releaseLock = async () => {
                 if (!lockRef.current || isDeletingRef.current) {
@@ -95,12 +99,14 @@ const TextDocumentEditorPage = () => {
         }
     }, [id, docs.loading])
 
+    // Redirect if document type is not TextDocument
     useEffect(() => {
         if (id && document && document.type !== 'TextDocument') {
             navigate(`/${document.type.toLowerCase()}s/${id}`)
         }
     }, [document])
 
+    // Keep document lock alive every 20 seconds
     useEffect(() => {
         if (!id || !isLockAdded || !document) {
             return
@@ -122,6 +128,7 @@ const TextDocumentEditorPage = () => {
         return () => clearInterval(intervalId)
     }, [id, docs, isLockAdded, document])
 
+    // Save or update text document
     const handleSave = async (doc: INewDocument) => {
         if (!doc.name) {
             setErrorMessage('Document must have a name')
@@ -142,6 +149,7 @@ const TextDocumentEditorPage = () => {
         }
     }
 
+    // Delete document and release lock
     const handleDelete = async (id: string) => {
         isDeletingRef.current = true
 
@@ -162,6 +170,7 @@ const TextDocumentEditorPage = () => {
         }
     }
 
+    // Render editor for new document
     if (!id) {
         return (
             <TextDocumentEditor
@@ -171,6 +180,8 @@ const TextDocumentEditorPage = () => {
             />
         )
     }
+
+    // Render message if document not found
     if (notFound) {
         return (
             <div>
@@ -187,15 +198,20 @@ const TextDocumentEditorPage = () => {
             </div>
         )
     }
+
+    // Show loading state
     if (isFetching || docs.loading) {
         return <p>Loading...</p>
     }
+
+    // Show lock error if another user is editing
     if (lockError) {
         return <p style={{ color: 'red' }}>{lockError}</p>
     }
 
     const isOwner: boolean = document?.user === auth.user?._id
 
+    // Render editor for existing document
     return (
         <TextDocumentEditor
             document={document}

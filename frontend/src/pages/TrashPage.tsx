@@ -19,6 +19,7 @@ const TrashPage = () => {
         return null
     }
 
+    // Clear success message after 2 seconds
     useEffect(() => {
         if (!message) {
             return
@@ -30,6 +31,7 @@ const TrashPage = () => {
         return () => clearTimeout(timer)
     }, [message])
 
+    // Clear error message after 2 seconds
     useEffect(() => {
         if (!error) {
             return
@@ -41,6 +43,7 @@ const TrashPage = () => {
         return () => clearTimeout(timer)
     }, [error])
 
+    // Fetch deleted documents from trash when component mounts
     useEffect(() => {
         const fetchTrashDocuments = async () => {
             try {
@@ -64,6 +67,7 @@ const TrashPage = () => {
         fetchTrashDocuments()
     }, [auth.token])
 
+    // Permanently delete a single document
     const handleDeleteDoc = async (docId: string) => {
         try {
             const response: Response = await fetch(`http://localhost:9000/api/documents/${docId}/permanent`, {
@@ -90,6 +94,7 @@ const TrashPage = () => {
         }
     }
 
+    // Permanently delete all documents in trash
     const handleDeleteAllDocs = async () => {
         try {
             const response: Response = await fetch(`http://localhost:9000/api/documents/trash/empty`, {
@@ -111,6 +116,7 @@ const TrashPage = () => {
         }
     }
 
+    // Restore a single document from trash
     const handleRestoreDoc = async (docId: string) => {
         try {
             const restoredDoc: IDocument = await docs.restoreDocument(docId)
@@ -129,6 +135,7 @@ const TrashPage = () => {
         }
     }
 
+    // Restore all documents from trash
     const handleRestoreDocs = async () => {
         try {
             if (!documents || documents.length === 0) {
@@ -148,15 +155,18 @@ const TrashPage = () => {
         }
     }
 
+    // Show loading state while documents are being fetched
     if (!documents) {
         return <p>Loading...</p>
     }
 
+    // Pagination logic
     const indexOfLastDoc: number = currentPage * 10
     const indexOfFirstDoc: number = indexOfLastDoc - 10
     const currentDocs: IDocument[] = documents.slice(indexOfFirstDoc, indexOfLastDoc)
     const totalPages: number = Math.ceil(documents.length / 10)
 
+    // Generate page numbers for pagination
     const getPageNumbers = () => {
         const pageNumbers: number[] = []
 
@@ -188,6 +198,7 @@ const TrashPage = () => {
         return pageNumbers
     }
 
+    // Render trash page content
     return (
         <div>
             {documents.length === 0

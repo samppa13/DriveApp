@@ -11,10 +11,12 @@ const RegisterPage = () => {
     const auth = useContext(AuthContext)
     const navigate = useNavigate()
 
+    // Show loading text while auth is loading
     if (auth.loading) {
         return <p>Loading...</p>
     }
 
+    // Show info if user is already logged in
     if (auth.user) {
         return (
             <div>
@@ -29,6 +31,7 @@ const RegisterPage = () => {
         )
     }
 
+    // Function to handle user registration
     const handleRegister = async (event: React.FormEvent) => {
         event.preventDefault()
 
@@ -50,6 +53,7 @@ const RegisterPage = () => {
             }
 
             setMessage(data.message)
+            // Navigate to login page after 2 seconds
             setTimeout(() => {
                 navigate('/login')
             }, 2000)
@@ -58,6 +62,7 @@ const RegisterPage = () => {
         }
     }
 
+    // Render the registration form and messages
     return (
         <div>
             <h1>

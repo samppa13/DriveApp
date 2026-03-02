@@ -28,6 +28,7 @@ const PresentationDocumentEditorPage = () => {
         return null
     }
 
+    // Clear success messages after 2 seconds
     useEffect(() => {
         if (!message) {
             return
@@ -39,6 +40,7 @@ const PresentationDocumentEditorPage = () => {
         return () => clearTimeout(timer)
     }, [message])
 
+    // Clear error messages after 2 seconds
     useEffect(() => {
         if (!errorMessage) {
             return
@@ -50,6 +52,7 @@ const PresentationDocumentEditorPage = () => {
         return () => clearTimeout(timer)
     }, [errorMessage])
 
+    // Fetch document and acquire lock when component mounts or ID changes
     useEffect(() => {
         if (!id || docs.loading) {
             return
@@ -81,6 +84,7 @@ const PresentationDocumentEditorPage = () => {
 
         fetchPresentationDoc()
 
+        // Release lock when component unmounts
         return () => {
             const releaseLock = async () => {
                 if (!lockRef.current || isDeletingRef.current) {
@@ -96,12 +100,14 @@ const PresentationDocumentEditorPage = () => {
         }
     }, [id, docs.loading])
 
+    // Redirect if the document type is not PresentationDocument
     useEffect(() => {
         if (id && document && document.type !== 'PresentationDocument') {
             navigate(`/${document.type.toLowerCase()}s/${id}`)
         }
     }, [document])
 
+    // Periodically refresh the document lock every 20 seconds
     useEffect(() => {
         if (!id || !isLockAdded || !document) {
             return
@@ -123,6 +129,7 @@ const PresentationDocumentEditorPage = () => {
         return () => clearInterval(intervalId)
     }, [id, docs, isLockAdded, document])
 
+    // Exit slideshow mode if fullscreen is exited
     useEffect(() => {
         const handleFullscreenChange = () => {
             if (!window.document.fullscreenElement) {
@@ -137,6 +144,7 @@ const PresentationDocumentEditorPage = () => {
         }
     }, [])
 
+    // Function to save or update the document
     const handleSave = async (doc: INewDocument) => {
         if (!doc.name) {
             setErrorMessage('Document must have a name')
@@ -160,6 +168,7 @@ const PresentationDocumentEditorPage = () => {
         }
     }
 
+    // Function to delete the document
     const handleDelete = async (id: string) => {
         isDeletingRef.current = true
 
@@ -180,6 +189,7 @@ const PresentationDocumentEditorPage = () => {
         }
     }
 
+    // Function to start slideshow mode (fullscreen)
     const handleStartSlideshow = async () => {
         if (!document || document.type !== 'PresentationDocument') {
             return
@@ -194,6 +204,7 @@ const PresentationDocumentEditorPage = () => {
         }
     }
 
+    // Render slideshow if active
     if (isSlideshow && document && document.type === 'PresentationDocument' && document.slides) {
         return (
             <Slideshow
@@ -201,6 +212,8 @@ const PresentationDocumentEditorPage = () => {
             />
         )
     }
+
+    // Render editor if no ID provided
     if (!id) {
         return (
             <PresentationDocumentEditor
@@ -211,6 +224,8 @@ const PresentationDocumentEditorPage = () => {
             />
         )
     }
+
+    // Render "not found" message
     if (notFound) {
         return (
             <div>
@@ -227,15 +242,20 @@ const PresentationDocumentEditorPage = () => {
             </div>
         )
     }
+
+    // Render loading state
     if (isFetching || docs.loading) {
         return <p>Loading...</p>
     }
+
+    // Render lock error if exists
     if (lockError) {
         return <p style={{ color: 'red' }}>{lockError}</p>
     }
 
     const isOwner: boolean = document?.user === auth.user?._id
 
+    // Render main editor with optional delete button for owner
     return (
         <PresentationDocumentEditor
             document={document}

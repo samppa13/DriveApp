@@ -12,6 +12,7 @@ interface AuthRequest extends Request {
     user?: JwtPayload
 }
 
+// Get a single image metadata by ID
 router.get('/:id', verifyToken, async (request: AuthRequest, response: Response) => {
     try {
         const image: IImage | null = await ImageModel.findOne({
@@ -33,6 +34,7 @@ router.get('/:id', verifyToken, async (request: AuthRequest, response: Response)
     }
 })
 
+// Download the actual image file by ID
 router.get('/:id/file', verifyToken, async (request: AuthRequest, response: Response) => {
     try {
         const image = await ImageModel.findOne({
@@ -66,8 +68,7 @@ router.get('/:id/file', verifyToken, async (request: AuthRequest, response: Resp
     }
 })
 
-
-
+// Upload a new image file
 router.post('/upload', verifyToken, upload.single('image'), async (request: AuthRequest, response: Response) => {
     try {
         if (!request.file) {

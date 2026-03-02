@@ -13,6 +13,7 @@ const SharedSpreadsheetDocumentPage = () => {
     const navigate = useNavigate()
     const { viewToken } = useParams()
 
+    // Fetch shared spreadsheet document using viewToken when component mounts or token changes
     useEffect(() => {
         if (!viewToken) {
             return
@@ -36,6 +37,7 @@ const SharedSpreadsheetDocumentPage = () => {
         fetchDoc()
     }, [viewToken])
 
+    // Update cells state when document changes
     useEffect(() => {
         setCells(
             document?.cells
@@ -43,6 +45,7 @@ const SharedSpreadsheetDocumentPage = () => {
         )
     }, [document])
 
+    // Convert column letters (e.g., "A", "AB") to numeric index
     const columnToIndex = (col: string): number => {
         let index: number = 0
         for (let i = 0; i < col.length; i++) {
@@ -51,6 +54,7 @@ const SharedSpreadsheetDocumentPage = () => {
         return index - 1
     }
 
+    // Convert numeric index to column letters (e.g., 0 -> "A", 27 -> "AB")
     const indexToColumn = (index: number): string => {
         let col: string = ''
         let i: number = index + 1
@@ -64,6 +68,7 @@ const SharedSpreadsheetDocumentPage = () => {
         return col
     }
 
+    // Compute value of a cell, handling SUM formulas and cycle detection
     const computeValue = (row: number, col: number, visited = new Set<string>()): string => {
         const key: string = `${row}-${col}`
         if (visited.has(key)) {
@@ -141,13 +146,17 @@ const SharedSpreadsheetDocumentPage = () => {
         return sum.toString()
     }
 
+    // Render error if fetching failed
     if (error) {
         return <p style={{ color: 'red' }}>{error}</p>
     }
+
+    // Render loading text while document is being fetched
     if (!document) {
         return <p>Loading...</p>
     }
 
+    // Render spreadsheet table and active cell
     return (
         <div>
             <button onClick={() => navigate('/')}>

@@ -30,6 +30,7 @@ app.use('/api/presentationdocuments', presentationDocumentRouter)
 app.use('/api/spreadsheetdocuments', spreadsheetDocumentRouter)
 app.use('/api/images', imageRouter)
 
+// Start the server
 app.listen(port, () => {
     console.log(`Server running on port ${port}`)
 })

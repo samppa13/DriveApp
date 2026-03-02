@@ -19,6 +19,7 @@ const TextDocumentEditor: React.FC<TextDocumentEditorProps> = ({ document, messa
 
     const navigate = useNavigate()
 
+    // Update name and text when the document prop changes
     useEffect(() => {
         setName(document?.name ?? '')
         setText(document?.text ?? '')
@@ -27,8 +28,10 @@ const TextDocumentEditor: React.FC<TextDocumentEditorProps> = ({ document, messa
     const id = document?._id
     const docType = 'TextDocument'
 
+    // Render the text document editor
     return (
         <div>
+            {/* Input for document name and text */}
             <Form>
                 <Form.Group>
                     <Form.Control
@@ -49,6 +52,8 @@ const TextDocumentEditor: React.FC<TextDocumentEditorProps> = ({ document, messa
                     />
                 </Form.Group>
             </Form>
+
+            {/* Optional delete button */}
             {
                 id
                 && handleDelete
@@ -58,12 +63,16 @@ const TextDocumentEditor: React.FC<TextDocumentEditorProps> = ({ document, messa
                     </Button>
                 )
             }
+
+            {/* Navigation and save buttons */}
             <Button variant='dark' onClick={() => navigate('/')}>
                 Back to Home
             </Button>
             <Button variant='dark' onClick={() => handleSave({ ...document, name, text, type: docType })}>
                 Save
             </Button>
+
+            {/* Display messages */}
             {
                 message
                 && <p style={{ color: 'green' }}>

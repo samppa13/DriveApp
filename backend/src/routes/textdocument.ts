@@ -10,6 +10,7 @@ interface AuthRequest extends Request {
     user?: JwtPayload
 }
 
+// Create a new text document
 router.post('/', verifyToken, async (request: AuthRequest, response: Response) => {
     try {
         const { name, text } = request.body
@@ -32,6 +33,7 @@ router.post('/', verifyToken, async (request: AuthRequest, response: Response) =
     }
 })
 
+// Get a text document by ID
 router.get('/:id', verifyToken, async (request: AuthRequest, response: Response) => {
     try {
         const id = Array.isArray(request.params.id) ? request.params.id[0] : request.params.id
@@ -59,6 +61,7 @@ router.get('/:id', verifyToken, async (request: AuthRequest, response: Response)
     }
 })
 
+// Update a text document by ID
 router.put('/:id', verifyToken, async (request: AuthRequest, response: Response) => {
     try {
         const { name, text } = request.body
@@ -100,6 +103,7 @@ router.put('/:id', verifyToken, async (request: AuthRequest, response: Response)
     }
 })
 
+// Get a text document by view token (public view)
 router.get('/:uuid/view', async (request: Request, response: Response) => {
     try {
         const textDocument: ITextDocument | null = await TextDocumentModel.findOne({

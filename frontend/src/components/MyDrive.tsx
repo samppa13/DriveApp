@@ -32,6 +32,7 @@ const MyDrive = () => {
         return null
     }
 
+    // Clear success message after 2 seconds
     useEffect(() => {
         if (!message) {
             return
@@ -43,6 +44,7 @@ const MyDrive = () => {
         return () => clearTimeout(timer)
     }, [message])
 
+    // Clear error message after 2 seconds
     useEffect(() => {
         if (!errorMessage) {
             return
@@ -54,6 +56,7 @@ const MyDrive = () => {
         return () => clearTimeout(timer)
     }, [errorMessage])
 
+    // Fetch all users except current user
     useEffect(() => {
         const fetchUsers = async () => {
             try {
@@ -80,6 +83,7 @@ const MyDrive = () => {
         fetchUsers()
     }, [auth.token, auth.user?._id])
 
+    // Fetch owned documents when component mounts
     useEffect(() => {
         if (!docs) {
             return
@@ -97,6 +101,7 @@ const MyDrive = () => {
         fetchDocs()
     }, [])
 
+    // Render loading state while documents are being fetched
     if (docs.loading) {
         return (
             <p>Loading...</p>
@@ -106,10 +111,12 @@ const MyDrive = () => {
         return <p>Loading...</p>
     }
 
+    // Navigate to edit page for selected document
     const handleEditDoc = (id: string | undefined, type: string) => {
         navigate(`/${type.toLowerCase()}s/${id}/edit`)
     }
 
+    // Delete a document
     const handleDeleteDoc = async (id: string | undefined) => {
         if (!id) {
             setErrorMessage('Id is undefined')
@@ -124,6 +131,7 @@ const MyDrive = () => {
         }
     }
 
+    // Share document with selected user
     const handleShareDoc = async (docId: string | undefined) => {
         if (!docId) {
             setErrorMessage('Document id is undefined')
@@ -149,6 +157,7 @@ const MyDrive = () => {
         }
     }
 
+    // Select user for sharing specific document
     const handleSelectUser = (docId: string, userId: string) => {
         setSelectedUsers((prevUsers) => {
             let updated: boolean = false
@@ -166,6 +175,7 @@ const MyDrive = () => {
         })
     }
 
+    // Create a public view link for document
     const handleCreateViewLink = async (docId: string | undefined) => {
         if (!docId) {
             setErrorMessage('Document id is undefined')
@@ -180,6 +190,7 @@ const MyDrive = () => {
         }
     }
 
+    // Navigate to create new document page
     const handleCreateDoc = () => {
         if (docType.length === 0) {
             setErrorMessage('You do not select document type')
@@ -188,6 +199,7 @@ const MyDrive = () => {
         navigate(`/${docType}s/new`)
     }
 
+    // Upload image document
     const handleUploadImage = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault()
 
@@ -215,6 +227,7 @@ const MyDrive = () => {
         }
     }
 
+    // Clone existing document
     const handleCloneDoc = async (docId: string) => {
         try {
             const mess = await docs.cloneDocument(docId)
@@ -267,6 +280,7 @@ const MyDrive = () => {
     const currentDocs: IDocument[] = filteredDocuments.slice(indexOfFirstDoc, indexOfLastDoc)
     const totalPages: number = Math.ceil(filteredDocuments.length / 10)
 
+    // Generate pagination page numbers
     const getPageNumbers = () => {
         const pageNumbers: number[] = []
 
@@ -298,9 +312,11 @@ const MyDrive = () => {
         return pageNumbers
     }
 
+    // Render MyDrive page UI
     return (
         <div>
             <div>
+                {/* Document type selection and creation */}
                 <Dropdown data-bs-theme='dark'>
                     <Dropdown.Toggle id='dropdown-button-dark' variant='secondary'>
                         {docType ? docType : 'Select document type'}
@@ -324,6 +340,8 @@ const MyDrive = () => {
                 >
                     Create a new document
                 </Button>
+
+                {/* Image upload form */}
                 <div>
                     <form onSubmit={handleUploadImage}>
                         <input
@@ -343,6 +361,8 @@ const MyDrive = () => {
                         </Button>
                     </form>
                 </div>
+
+                {/* Sorting dropdown */}
                 <label htmlFor='sort'>Sort</label>
                 <Dropdown id='sort'>
                     <Dropdown.Toggle variant='secondary' id='dropdown-sort'>
@@ -374,6 +394,8 @@ const MyDrive = () => {
                         </Dropdown.Item>
                     </Dropdown.Menu>
                 </Dropdown>
+
+                {/* Messages */}
                 {
                     message
                     && <p style={{ color: 'green' }}>
@@ -386,6 +408,8 @@ const MyDrive = () => {
                         {errorMessage}
                     </p>
                 }
+
+                {/* Search input */}
                 <div>
                     <input
                         type='text'
@@ -396,6 +420,8 @@ const MyDrive = () => {
                         onChange={(event) => setSearchTerm(event.target.value)}
                     />
                 </div>
+
+                {/* Documents table or empty state */}
                 {!(filteredDocuments.length > 0) ? (
                     <h2>
                         {sortedDocuments.length === 0
@@ -443,6 +469,7 @@ const MyDrive = () => {
                                                     }
                                                 </td>
                                                 <td>
+                                                    {/* Actions dropdown */}
                                                     <Dropdown data-bs-theme='dark'>
                                                         <Dropdown.Toggle
                                                             id='dropdown-button-dark'
@@ -512,6 +539,8 @@ const MyDrive = () => {
                                 </tbody>
                             </Table>
                         </div>
+
+                        {/* Pagination */}
                         <Pagination size='sm'>
                             <Pagination.Item
                                 onClick={() => setCurrentPage((prevCurrentPage) => prevCurrentPage - 1)}

@@ -9,6 +9,8 @@ interface AuthRequest extends Request {
     user?: JwtPayload
 }
 
+// Configure Multer to handle image uploads
+// and store them in a user-specific folder with a unique filename
 const storage: StorageEngine = multer.diskStorage({
     destination: async (request: AuthRequest, file, callback) => {
         const userDir = path.join('./public/images', request.user?.id)

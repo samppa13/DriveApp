@@ -8,6 +8,7 @@ const auth_1 = require("../middleware/auth");
 const mongoose_1 = __importDefault(require("mongoose"));
 const Spreadsheet_1 = require("../models/document/Spreadsheet");
 const router = (0, express_1.Router)();
+// Create a new spreadsheet document
 router.post('/', auth_1.verifyToken, async (request, response) => {
     try {
         const { name, cells } = request.body;
@@ -28,6 +29,7 @@ router.post('/', auth_1.verifyToken, async (request, response) => {
         response.status(500).json({ error: 'Error creating spreadsheet document' });
     }
 });
+// Get a spreadsheet document by ID
 router.get('/:id', auth_1.verifyToken, async (request, response) => {
     try {
         const id = Array.isArray(request.params.id) ? request.params.id[0] : request.params.id;
@@ -53,6 +55,7 @@ router.get('/:id', auth_1.verifyToken, async (request, response) => {
         response.status(500).json({ error: 'Error fetching spreadsheet document' });
     }
 });
+// Update a spreadsheet document by ID
 router.put('/:id', auth_1.verifyToken, async (request, response) => {
     try {
         const { name, cells } = request.body;
@@ -88,6 +91,7 @@ router.put('/:id', auth_1.verifyToken, async (request, response) => {
         response.status(500).json({ error: 'Error updating spreadsheet document' });
     }
 });
+// Get a spreadsheet document by view token (public view)
 router.get('/:uuid/view', async (request, response) => {
     try {
         const spreadsheetDocument = await Spreadsheet_1.SpreadsheetDocumentModel.findOne({

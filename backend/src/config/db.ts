@@ -1,5 +1,6 @@
 import mongoose, { Connection } from 'mongoose'
 
+// Connect to MongoDB and handle connection errors
 const connectDB = () => {
     const mongoDB: string = process.env.MONGO_URI as string
     mongoose.connect(mongoDB)

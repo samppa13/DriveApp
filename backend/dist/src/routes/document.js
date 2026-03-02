@@ -13,6 +13,7 @@ const path_1 = __importDefault(require("path"));
 const Image_1 = require("../models/document/Image");
 const router = (0, express_1.Router)();
 const LOCK_TIMEOUT = 2 * 60 * 1000;
+// Get all documents owned by the logged-in user
 router.get('/', auth_1.verifyToken, async (request, response) => {
     try {
         const ownedDocs = await Document_1.DocumentModel.find({
@@ -25,6 +26,7 @@ router.get('/', auth_1.verifyToken, async (request, response) => {
         response.status(500).json({ error: 'Error fetching documents' });
     }
 });
+// Get all documents shared by the logged-in user
 router.get('/shared', auth_1.verifyToken, async (request, response) => {
     try {
         const sharedDocs = await Document_1.DocumentModel.find({
@@ -37,6 +39,7 @@ router.get('/shared', auth_1.verifyToken, async (request, response) => {
         response.status(500).json({ error: 'Error fetching shared documents' });
     }
 });
+// Get all documents in the user's trash
 router.get('/trash', auth_1.verifyToken, async (request, response) => {
     try {
         const documents = await Document_1.DocumentModel.find({
@@ -49,6 +52,7 @@ router.get('/trash', auth_1.verifyToken, async (request, response) => {
         response.status(500).json({ error: 'Error fetching trash' });
     }
 });
+// Restore all documents from trash for the logged-in user
 router.post('/trash/restore', auth_1.verifyToken, async (request, response) => {
     try {
         await Document_1.DocumentModel.updateMany({
@@ -61,6 +65,7 @@ router.post('/trash/restore', auth_1.verifyToken, async (request, response) => {
         response.status(500).json({ error: 'Error restoring documents' });
     }
 });
+// Permanently delete all trashed documents and images
 router.delete('/trash/empty', auth_1.verifyToken, async (request, response) => {
     try {
         const images = await Image_1.ImageModel.find({
@@ -88,6 +93,7 @@ router.delete('/trash/empty', auth_1.verifyToken, async (request, response) => {
         response.status(500).json({ error: 'Error emptying trash' });
     }
 });
+// Move a document to trash
 router.delete('/:id', auth_1.verifyToken, async (request, response) => {
     try {
         const updatedDocument = await Document_1.DocumentModel.findOneAndUpdate({
@@ -105,6 +111,7 @@ router.delete('/:id', auth_1.verifyToken, async (request, response) => {
         response.status(500).json({ error: 'Error deleting document' });
     }
 });
+// Permanently delete a single trashed document
 router.delete('/:id/permanent', auth_1.verifyToken, async (request, response) => {
     try {
         const document = await Document_1.DocumentModel.findOne({
@@ -134,6 +141,7 @@ router.delete('/:id/permanent', auth_1.verifyToken, async (request, response) =>
         response.status(500).json({ error: 'Error deleting document' });
     }
 });
+// Restore a single document from trash
 router.post('/:id/restore', auth_1.verifyToken, async (request, response) => {
     try {
         const updatedDocument = await Document_1.DocumentModel.findOneAndUpdate({
@@ -151,6 +159,7 @@ router.post('/:id/restore', auth_1.verifyToken, async (request, response) => {
         response.status(500).json({ error: 'Error restoring document' });
     }
 });
+// Grant edit permission to another user
 router.put('/:id/permissions', auth_1.verifyToken, async (request, response) => {
     try {
         if (!request.body.userId) {
@@ -187,6 +196,7 @@ router.put('/:id/permissions', auth_1.verifyToken, async (request, response) => 
         response.status(500).json({ error: 'Error updating permissions' });
     }
 });
+// Create a shareable view link for a document
 router.put('/:id/permissions/view', auth_1.verifyToken, async (request, response) => {
     try {
         const updatedDocument = await Document_1.DocumentModel.findOne({
@@ -211,6 +221,7 @@ router.put('/:id/permissions/view', auth_1.verifyToken, async (request, response
         response.status(500).json({ error: 'Error creating share view link' });
     }
 });
+// Lock a document for editing
 router.put('/:id/lock', auth_1.verifyToken, async (request, response) => {
     try {
         const document = await Document_1.DocumentModel.findOne({
@@ -243,6 +254,7 @@ router.put('/:id/lock', auth_1.verifyToken, async (request, response) => {
         response.status(500).json({ error: 'Error adding lock' });
     }
 });
+// Release the lock on a document
 router.delete('/:id/lock', auth_1.verifyToken, async (request, response) => {
     try {
         const document = await Document_1.DocumentModel.findOne({
@@ -273,6 +285,7 @@ router.delete('/:id/lock', auth_1.verifyToken, async (request, response) => {
         response.status(500).json({ error: 'Error releasing document lock' });
     }
 });
+// Clone a document
 router.post('/:id/clone', auth_1.verifyToken, async (request, response) => {
     try {
         const originalDoc = await Document_1.DocumentModel.findById(request.params.id);

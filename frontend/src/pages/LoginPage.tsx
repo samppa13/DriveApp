@@ -11,17 +11,21 @@ const LoginPage = () => {
     const auth = useContext(AuthContext)
     const navigate = useNavigate()
 
+    // Show loading text if auth is still loading
     if (auth.loading) {
         return <p>Loading...</p>
     }
 
+    // If user is already logged in, show info and options
     if (auth.user) {
         return (
             <div>
                 <p>You are logged in as {auth.user.username}, you must log out before you can log in as another user.</p>
+                {/* Navigate back to home */}
                 <button onClick={() => navigate('/')}>
                     Cancel
                 </button>
+                {/* Logout current user */}
                 <button onClick={() => auth.logout()}>
                     Logout
                 </button>
@@ -29,6 +33,7 @@ const LoginPage = () => {
         )
     }
 
+    // Function to handle form submission and login
     const handleLogin = async (event: React.FormEvent) => {
         event.preventDefault()
         setMessage('')
@@ -46,10 +51,12 @@ const LoginPage = () => {
             <h1>
                 Sign in
             </h1>
+            {/* Show error message if exists */}
             {
                 message
                 && <p style={{ color: 'red' }}>{message}</p>
             }
+            {/* Login form */}
             <Form onSubmit={handleLogin}>
                 <Form.Group>
                     <Form.Label htmlFor='username'>Username</Form.Label>
@@ -71,6 +78,7 @@ const LoginPage = () => {
                         value={password}
                     />
                 </Form.Group>
+                {/* Submit button */}
                 <Button variant='dark' type='submit'>Sign in</Button>
             </Form>
         </div>

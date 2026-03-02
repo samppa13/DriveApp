@@ -10,6 +10,7 @@ const Slideshow: React.FC<SlideshowProps> = ({ slides }) => {
     const [currentIndex, setCurrentIndex] = useState<number>(0)
     const [touchStart, setTouchStart] = useState<number | null>(null)
 
+    // Listen for keyboard events for navigation and exit
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === 'ArrowRight' || event.key === ' ') {
@@ -29,6 +30,7 @@ const Slideshow: React.FC<SlideshowProps> = ({ slides }) => {
         return () => window.removeEventListener('keydown', handleKeyDown)
     }, [slides.length])
 
+    // Handle click to go forward/backward based on screen position
     const handleClick = (event: MouseEvent<HTMLDivElement>) => {
         const screenWidth = window.innerWidth
         const clickX = event.clientX
@@ -44,10 +46,12 @@ const Slideshow: React.FC<SlideshowProps> = ({ slides }) => {
         }
     }
 
+    // Record touch start position for swipe
     const handleTouchStart = (e: React.TouchEvent) => {
         setTouchStart(e.touches[0].clientX)
     }
 
+    // Handle swipe gestures for navigation
     const handleTouchEnd = (e: React.TouchEvent) => {
         if (touchStart === null) return
 
@@ -68,18 +72,21 @@ const Slideshow: React.FC<SlideshowProps> = ({ slides }) => {
         setTouchStart(null)
     }
 
+    // Exit fullscreen mode
     const handleExitFullscreen = async () => {
         if (document.fullscreenElement) {
             await document.exitFullscreen()
         }
     }
 
+    // Return nothing if there are no slides
     if (!slides.length) {
         return null
     }
 
     const slide = slides[currentIndex]
 
+    // Render the slideshow
     return (
         <div
             onClick={handleClick}
@@ -99,6 +106,7 @@ const Slideshow: React.FC<SlideshowProps> = ({ slides }) => {
                 display: 'flex'
             }}
         >
+            {/* Exit fullscreen button */}
             <Button
                 variant='dark'
                 onClick={(e) => {
@@ -118,9 +126,13 @@ const Slideshow: React.FC<SlideshowProps> = ({ slides }) => {
             >
                 ✕
             </Button>
+
+            {/* Slide title */}
             <h1>
                 {slide.title}
             </h1>
+
+            {/* Slide bullets */}
             <ul
                 style={{
                     listStylePosition: 'inside',
@@ -136,6 +148,8 @@ const Slideshow: React.FC<SlideshowProps> = ({ slides }) => {
                     </li>
                 ))}
             </ul>
+
+            {/* Slide index indicator */}
             <div>
                 {currentIndex + 1} / {slides.length}
             </div>

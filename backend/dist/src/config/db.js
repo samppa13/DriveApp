@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
+// Connect to MongoDB and handle connection errors
 const connectDB = () => {
     const mongoDB = process.env.MONGO_URI;
     mongoose_1.default.connect(mongoDB);

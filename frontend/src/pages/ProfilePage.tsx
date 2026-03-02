@@ -14,6 +14,7 @@ const ProfilePage = () => {
 
     const auth = useContext(AuthContext)
 
+    // Clear success message after 2 seconds
     useEffect(() => {
         if (!message) {
             return
@@ -25,6 +26,7 @@ const ProfilePage = () => {
         return () => clearTimeout(timer)
     }, [message])
 
+    // Clear error message after 2 seconds
     useEffect(() => {
         if (!errorMessage) {
             return
@@ -36,6 +38,7 @@ const ProfilePage = () => {
         return () => clearTimeout(timer)
     }, [errorMessage])
 
+    // Set username from auth.user when user changes
     useEffect(() => {
         if (!auth.user?.username) {
             return
@@ -44,6 +47,7 @@ const ProfilePage = () => {
         setUsername(auth.user?.username)
     }, [auth.user])
 
+    // Handle uploading a new profile image
     const handleUploadImage = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault()
 
@@ -72,6 +76,7 @@ const ProfilePage = () => {
         }
     }
 
+    // Handle deleting the profile image
     const handleDeleteImage = async () => {
         try {
             const mess = await auth.deleteImage()
@@ -81,6 +86,7 @@ const ProfilePage = () => {
         }
     }
 
+    // Handle updating the username/profile
     const handleUpdateProfile = async (event: React.FormEvent) => {
         event.preventDefault()
 
@@ -101,32 +107,34 @@ const ProfilePage = () => {
 
     return (
         <div>
-            {
-                auth.user?.profileImage
-                && <ImageGrid
+            {/* Display profile image if exists */}
+            {auth.user?.profileImage && (
+                <ImageGrid
                     name={auth.user?.profileImage}
                     imgUrl={imgUrl}
                     isProfile={true}
                 />
-            }
-            {
-                auth.user?.profileImage
-                && <Button variant='dark' onClick={handleDeleteImage}>
+            )}
+
+            {/* Button to delete profile image */}
+            {auth.user?.profileImage && (
+                <Button variant='dark' onClick={handleDeleteImage}>
                     Delete profile image
                 </Button>
-            }
+            )}
+
+            {/* Button to toggle edit/add image form */}
             <Button variant='dark' onClick={() => setIsEditImage(!isEditImage)}>
                 {isEditImage
                     ? 'Cancel'
-                    : (auth.user?.profileImage
+                    : auth.user?.profileImage
                         ? 'Update profile image'
-                        : 'Add profile image'
-                    )
-                }
+                        : 'Add profile image'}
             </Button>
-            {
-                isEditImage
-                && <div>
+
+            {/* Form to upload new profile image */}
+            {isEditImage && (
+                <div>
                     <Form onSubmit={handleUploadImage}>
                         <Form.Group>
                             <Form.Control
@@ -148,7 +156,9 @@ const ProfilePage = () => {
                         </Button>
                     </Form>
                 </div>
-            }
+            )}
+
+            {/* Form to update username */}
             <Form onSubmit={handleUpdateProfile}>
                 <Form.Group>
                     <Form.Label htmlFor="username">Username:</Form.Label>
@@ -164,18 +174,12 @@ const ProfilePage = () => {
                     Save
                 </Button>
             </Form>
-            {
-                message
-                && <p style={{ color: 'green' }}>
-                    {message}
-                </p>
-            }
-            {
-                errorMessage
-                && <p style={{ color: 'red' }}>
-                    {errorMessage}
-                </p>
-            }
+
+            {/* Display success message */}
+            {message && <p style={{ color: 'green' }}>{message}</p>}
+
+            {/* Display error message */}
+            {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
         </div>
     )
 }

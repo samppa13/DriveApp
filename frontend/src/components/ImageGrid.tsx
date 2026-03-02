@@ -15,6 +15,8 @@ const ImageGrid: React.FC<ImageGridProps> = ({ name, imgUrl, isProfile }) => {
     const imgRef = useRef<string | null>(null);
     const auth = useContext(AuthContext)
 
+    // Fetch image when name or imgUrl changes
+    // Also clean up object URL when component unmounts
     useEffect(() => {
         if (!name || !imgUrl ) {
             return
@@ -51,6 +53,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({ name, imgUrl, isProfile }) => {
         }
     }, [name, imgUrl])
 
+    // Render error message if image fetch failed
     if (errorMessage) {
         return (
             <p style={{ color: 'red' }}>
@@ -59,6 +62,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({ name, imgUrl, isProfile }) => {
         )
     }
     
+    // Render image or loading text
     return (
         <div>
             {imgSrc ? (
@@ -76,6 +80,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({ name, imgUrl, isProfile }) => {
                 <p>Loading image...</p>
             )}
             {
+                // Show image name if not profile image
                 !isProfile
                 && <p>
                     {name}

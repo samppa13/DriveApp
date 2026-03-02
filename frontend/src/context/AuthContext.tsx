@@ -12,6 +12,7 @@ interface AuthContextSettings {
     updateProfile: (username: string) => Promise<string>
 }
 
+// Create authentication context with default values
 export const AuthContext = createContext<AuthContextSettings>({
     user: null,
     token: null,
@@ -38,6 +39,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [token, setToken] = useState<string | null>(null)
     const [loading, setLoading] = useState<boolean>(true)
 
+    // Check if token exists in localStorage when app starts
+    // If token exists, fetch user profile
     useEffect(() => {
         const storedToken = localStorage.getItem('token')
         if (!storedToken) {
@@ -62,6 +65,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
                 setUser(data)
             } catch (error) {
+                // If token is invalid, remove it
                 localStorage.removeItem('token')
                 setToken(null)
                 setUser(null)
@@ -73,6 +77,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         fetchProfile()
     }, [])
 
+    // Login user and store token
     const login = async (username: string, password: string) => {
         const response: Response = await fetch('http://localhost:9000/api/users/login', {
             method: 'POST',
@@ -94,6 +99,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         localStorage.setItem('token', data.token)
         
         try {
+            // Decode token and set user data
             const decoded = JSON.parse(atob(data.token.split('.')[1]))
             setUser({ _id: decoded.id, username: decoded.username })
         } catch (error) {
@@ -101,12 +107,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     }
 
+    // Logout user and clear data
     const logout = () => {
         setUser(null)
         setToken(null)
         localStorage.removeItem('token')
     }
 
+    // Upload new profile image
     const uploadImage = async (formData: FormData) => {
         const response: Response = await fetch('http://localhost:9000/api/users/profile/image/upload', {
             method: 'POST',
@@ -121,6 +129,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             throw new Error(data.error || 'Error uploading profile image')
         }
 
+        // Update user profile image in state
         setUser((prevUser) => prevUser
             ? { ...prevUser, profileImage: data.filename }
             : prevUser
@@ -128,6 +137,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return data.message
     }
 
+    // Delete profile image
     const deleteImage = async () => {
         const response: Response = await fetch('http://localhost:9000/api/users/profile/image', {
             method: 'DELETE',
@@ -141,6 +151,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             throw new Error(data.error || 'Error deleting profile image')
         }
 
+        // Remove profile image from state
         setUser((prevUser) => prevUser
             ? { ...prevUser, profileImage: null }
             : prevUser
@@ -148,6 +159,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return data.message
     }
 
+    // Update username
     const updateProfile = async (username: string) => {
         const response: Response = await fetch('http://localhost:9000/api/users/profile', {
             method: 'PUT',
@@ -165,6 +177,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             throw new Error(data.error || 'Error updating profile')
         }
 
+        // Update username in state
         setUser((prevUser) => prevUser
             ? { ...prevUser, username: data.username }
             : prevUser
@@ -172,6 +185,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return data.message
     }
 
+    // Provide authentication data and functions to children components
     return (
         <AuthContext.Provider value={{
             user,

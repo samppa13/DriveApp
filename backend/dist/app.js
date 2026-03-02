@@ -30,6 +30,7 @@ app.use('/api/textdocuments', textdocument_1.default);
 app.use('/api/presentationdocuments', presentationdocument_1.default);
 app.use('/api/spreadsheetdocuments', spreadsheetdocument_1.default);
 app.use('/api/images', image_1.default);
+// Start the server
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });

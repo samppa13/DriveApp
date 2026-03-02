@@ -24,6 +24,7 @@ const SpreadsheetDocumentEditor: React.FC<SpreadsheetDocumentEditorProps> = ({ d
 
     const navigate = useNavigate()
 
+    // Update name and cells when document changes
     useEffect(() => {
         setName(document?.name ?? '')
         setCells(
@@ -35,6 +36,7 @@ const SpreadsheetDocumentEditor: React.FC<SpreadsheetDocumentEditorProps> = ({ d
     const id = document?._id
     const docType = 'SpreadsheetDocument'
 
+    // Add a new row to the spreadsheet
     const handleAddRow = () => {
         setCells((prevCells) => [
             ...prevCells,
@@ -42,12 +44,14 @@ const SpreadsheetDocumentEditor: React.FC<SpreadsheetDocumentEditorProps> = ({ d
         ])
     }
 
+    // Add a new column to the spreadsheet
     const handleAddColumn = () => {
         setCells((prevCells) =>
             prevCells.map((row) => [...row, ''])
         )
     }
 
+    // Update the value of the active cell
     const handleFormulaChange = (value: string) => {
         if (!activeCell) {
             return
@@ -58,6 +62,7 @@ const SpreadsheetDocumentEditor: React.FC<SpreadsheetDocumentEditorProps> = ({ d
         setCells(newCells)
     }
 
+    // Convert column letters to index
     const columnToIndex = (col: string): number => {
         let index: number = 0
         for (let i = 0; i < col.length; i++) {
@@ -66,6 +71,7 @@ const SpreadsheetDocumentEditor: React.FC<SpreadsheetDocumentEditorProps> = ({ d
         return index - 1
     }
 
+    // Convert column index to letters
     const indexToColumn = (index: number): string => {
         let col: string = ''
         let i: number = index + 1
@@ -79,6 +85,7 @@ const SpreadsheetDocumentEditor: React.FC<SpreadsheetDocumentEditorProps> = ({ d
         return col
     }
 
+    // Compute the value of a cell, handling SUM formulas and cycle detection
     const computeValue = (row: number, col: number, visited = new Set<string>()): string => {
         const key: string = `${row}-${col}`
         if (visited.has(key)) {
@@ -156,6 +163,7 @@ const SpreadsheetDocumentEditor: React.FC<SpreadsheetDocumentEditorProps> = ({ d
         return sum.toString()
     }
 
+    // Handle saving the spreadsheet
     const handleSaveClick = () => {
         handleSave({
             ...document,
@@ -165,8 +173,10 @@ const SpreadsheetDocumentEditor: React.FC<SpreadsheetDocumentEditorProps> = ({ d
         })
     }
 
+    // Render the spreadsheet editor
     return (
         <div>
+            {/* Input for document name */}
             <Form>
                 <Form.Group>
                     <Form.Control
@@ -179,6 +189,8 @@ const SpreadsheetDocumentEditor: React.FC<SpreadsheetDocumentEditorProps> = ({ d
                     />
                 </Form.Group>
             </Form>
+
+            {/* Optional delete button */}
             {
                 id
                 && handleDelete
@@ -186,12 +198,16 @@ const SpreadsheetDocumentEditor: React.FC<SpreadsheetDocumentEditorProps> = ({ d
                     Delete
                 </Button>
             }
+
+            {/* Navigation and save buttons */}
             <Button variant='dark' onClick={() => navigate('/')}>
                 Back to home
             </Button>
             <Button variant='dark' onClick={handleSaveClick}>
                 Save
             </Button>
+
+            {/* Display messages */}
             {
                 message
                 && <p style={{ color: 'green' }}>
@@ -204,6 +220,8 @@ const SpreadsheetDocumentEditor: React.FC<SpreadsheetDocumentEditorProps> = ({ d
                     {errorMessage}
                 </p>
             }
+
+            {/* Formula input for active cell */}
             <div>
                 <Form.Control
                     type='text'
@@ -214,6 +232,8 @@ const SpreadsheetDocumentEditor: React.FC<SpreadsheetDocumentEditorProps> = ({ d
                     onChange={(event) => handleFormulaChange(event.target.value)}
                 />
             </div>
+
+            {/* Spreadsheet table */}
             <div className='table-wrapper'>
                 <Table
                     style={{
@@ -243,6 +263,7 @@ const SpreadsheetDocumentEditor: React.FC<SpreadsheetDocumentEditorProps> = ({ d
                                             border: '1px solid #ccc'
                                         }}
                                     >
+                                        {/* Cell content and click handler */}
                                         <div
                                             onClick={() => setActiveCell({ row: rowIndex, col: colIndex })}
                                             style={{
@@ -271,6 +292,8 @@ const SpreadsheetDocumentEditor: React.FC<SpreadsheetDocumentEditorProps> = ({ d
                     </tbody>
                 </Table>
             </div>
+
+            {/* Add row and column buttons */}
             <Button variant='dark' onClick={handleAddRow}>
                 Add row
             </Button>

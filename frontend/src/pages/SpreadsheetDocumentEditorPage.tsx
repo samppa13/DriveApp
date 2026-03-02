@@ -26,6 +26,7 @@ const SpreadsheetDocumentEditorPage = () => {
         return null
     }
 
+    // Clear success message after 2 seconds
     useEffect(() => {
         if (!message) {
             return
@@ -37,6 +38,7 @@ const SpreadsheetDocumentEditorPage = () => {
         return () => clearTimeout(timer)
     }, [message])
 
+    // Clear error message after 2 seconds
     useEffect(() => {
         if (!errorMessage) {
             return
@@ -48,6 +50,7 @@ const SpreadsheetDocumentEditorPage = () => {
         return () => clearTimeout(timer)
     }, [errorMessage])
 
+    // Fetch document and add lock when page loads or id changes
     useEffect(() => {
         if (!id || docs.loading) {
             return
@@ -79,6 +82,7 @@ const SpreadsheetDocumentEditorPage = () => {
 
         fetchTextDoc()
 
+        // Release lock when component unmounts
         return () => {
             const releaseLock = async () => {
                 if (!lockRef.current || isDeletingRef.current) {
@@ -94,12 +98,14 @@ const SpreadsheetDocumentEditorPage = () => {
         }
     }, [id, docs.loading])
 
+    // Redirect if document type is not SpreadsheetDocument
     useEffect(() => {
         if (id && document && document.type !== 'SpreadsheetDocument') {
             navigate(`/${document.type.toLowerCase()}s/${id}`)
         }
     }, [document])
 
+    // Keep document lock alive every 20 seconds
     useEffect(() => {
         if (!id || !isLockAdded || !document) {
             return
@@ -121,6 +127,7 @@ const SpreadsheetDocumentEditorPage = () => {
         return () => clearInterval(intervalId)
     }, [id, docs, isLockAdded, document])
 
+    // Function to save or update a spreadsheet document
     const handleSave = async (doc: INewDocument) => {
         if (!doc.name) {
             setErrorMessage('Document must have a name')
@@ -141,6 +148,7 @@ const SpreadsheetDocumentEditorPage = () => {
         }
     }
 
+    // Function to delete a spreadsheet document and release lock
     const handleDelete = async (id: string) => {
         isDeletingRef.current = true
 
@@ -161,6 +169,7 @@ const SpreadsheetDocumentEditorPage = () => {
         }
     }
 
+    // Render editor for new document
     if (!id) {
         return (
             <SpreadsheetDocumentEditor
@@ -170,6 +179,8 @@ const SpreadsheetDocumentEditorPage = () => {
             />
         )
     }
+
+    // Show message if document not found
     if (notFound) {
         return (
             <div>
@@ -186,15 +197,20 @@ const SpreadsheetDocumentEditorPage = () => {
             </div>
         )
     }
+
+    // Show loading state while fetching
     if (isFetching || docs.loading) {
         return <p>Loading...</p>
     }
+
+    // Show lock error if another user has locked the document
     if (lockError) {
         return <p style={{ color: 'red' }}>{lockError}</p>
     }
 
     const isOwner: boolean = document?.user === auth.user?._id
 
+    // Render editor for existing document
     return (
         <SpreadsheetDocumentEditor
             document={document}

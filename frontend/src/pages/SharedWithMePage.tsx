@@ -19,6 +19,7 @@ const SharedWithMePage = () => {
         return null
     }
 
+    // Fetch all documents shared with the user when component mounts
     useEffect(() => {
         const fetchDocs = async () => {
             try {
@@ -32,6 +33,7 @@ const SharedWithMePage = () => {
         fetchDocs()
     }, [])
 
+    // Show loading message while documents are being fetched
     if (docs.loading) {
         return (
             <p>Loading...</p>
@@ -41,10 +43,12 @@ const SharedWithMePage = () => {
         return <p>Loading...</p>
     }
 
+    // Navigate to edit page when a document row is clicked
     const handleEditDoc = (id: string | undefined, type: string) => {
         navigate(`/${type.toLowerCase()}s/${id}/edit`)
     }
 
+    // Sort shared documents according to the selected sortTerm
     const sortedDocuments: IDocument[] = [...docs.sharedDocuments].sort((doc1, doc2) => {
         if (sortTerm === 'created-desc') {
             const time1 = doc1.createdAt ? new Date(doc1.createdAt).getTime() : 0
@@ -79,15 +83,18 @@ const SharedWithMePage = () => {
         return 0
     })
 
+    // Filter documents by search term
     const filteredDocuments: IDocument[] = sortedDocuments.filter((doc) =>
         doc.name.toLowerCase().includes(searchTerm.toLocaleLowerCase())
     )
 
+    // Pagination logic
     const indexOfLastDoc: number = currentPage * 10
     const indexOfFirstDoc: number = indexOfLastDoc - 10
     const currentDocs: IDocument[] = filteredDocuments.slice(indexOfFirstDoc, indexOfLastDoc)
     const totalPages: number = Math.ceil(filteredDocuments.length / 10)
 
+    // Generate page numbers for pagination
     const getPageNumbers = () => {
         const pageNumbers: number[] = []
 
@@ -119,6 +126,7 @@ const SharedWithMePage = () => {
         return pageNumbers
     }
 
+    // Render the shared documents table and controls
     return (
         <div>
             <label htmlFor="sort">Sort</label>
@@ -160,6 +168,7 @@ const SharedWithMePage = () => {
                 </h2>
             ) : (
                 <>
+                    {/* Render table of current page documents */}
                     <div className='table-wrapper'>
                         <Table striped bordered hover variant='dark'>
                             <thead>
@@ -195,6 +204,7 @@ const SharedWithMePage = () => {
                             </tbody>
                         </Table>
                     </div>
+                    {/* Render pagination controls */}
                     <Pagination size='sm'>
                         <Pagination.Item
                             onClick={() => setCurrentPage((prevCurrentPage) => prevCurrentPage - 1)}

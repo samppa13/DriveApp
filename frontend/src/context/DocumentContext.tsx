@@ -22,6 +22,7 @@ interface DocumentContextSettings {
     uploadImage: (formData: FormData) => Promise<string>
 }
 
+// Create document context
 export const DocumentContext = createContext<DocumentContextSettings | undefined>(undefined)
 
 export const DocumentProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -32,6 +33,7 @@ export const DocumentProvider: React.FC<{ children: ReactNode }> = ({ children }
     const auth = useContext(AuthContext)
     const ctrlRef = useRef<AbortController | null>(null)
 
+    // Fetch documents owned by the current user
     const fetchOwnedDocuments = async () => {
         if (!auth.token) {
             return
@@ -65,6 +67,7 @@ export const DocumentProvider: React.FC<{ children: ReactNode }> = ({ children }
         }
     }
 
+    // Fetch documents shared with the current user
     const fetchSharedDocuments = async () => {
         if (!auth.token) {
             return
@@ -98,6 +101,7 @@ export const DocumentProvider: React.FC<{ children: ReactNode }> = ({ children }
         }
     }
 
+    // Fetch single document by id and type
     const fetchDocument = async (id: string, type: string) => {
         const response: Response = await fetch(`http://localhost:9000/api/${type.toLowerCase()}s/${id}`, {
             method: 'GET',
@@ -111,6 +115,7 @@ export const DocumentProvider: React.FC<{ children: ReactNode }> = ({ children }
             throw new Error(data.error || 'Error fetching document')
         }
 
+        // Update document in owned and shared lists
         setOwnedDocuments((prevDocs) => prevDocs
             ? prevDocs.map(
                 (doc) => doc._id === data._id ? data : doc
@@ -126,6 +131,7 @@ export const DocumentProvider: React.FC<{ children: ReactNode }> = ({ children }
         return data
     }
 
+    // Create a new document
     const createDocument = async (document: INewDocument) => {
         const response: Response = await fetch(`http://localhost:9000/api/${document.type.toLowerCase()}s`, {
             method: 'POST',
@@ -147,6 +153,7 @@ export const DocumentProvider: React.FC<{ children: ReactNode }> = ({ children }
         return data
     }
 
+    // Update existing document
     const updateDocument = async (document: INewDocument) => {
         const response: Response = await fetch(`http://localhost:9000/api/${document.type.toLowerCase()}s/${document._id}`, {
             method: 'PUT',
@@ -162,6 +169,7 @@ export const DocumentProvider: React.FC<{ children: ReactNode }> = ({ children }
             throw new Error(data.error || 'Error updating document')
         }
 
+        // Update document in owned and shared lists
         setOwnedDocuments((prevDocs) => prevDocs
             ? prevDocs.map(
                 (doc) => doc._id === data._id ? data : doc
@@ -177,6 +185,7 @@ export const DocumentProvider: React.FC<{ children: ReactNode }> = ({ children }
         return data
     }
 
+    // Delete document (move to trash)
     const deleteDocument = async (id: string) => {
         const response: Response = await fetch(`http://localhost:9000/api/documents/${id}`, {
             method: 'DELETE',
@@ -199,6 +208,7 @@ export const DocumentProvider: React.FC<{ children: ReactNode }> = ({ children }
         return data.message
     }
 
+    // Share document with another user
     const shareDocument = async (docId: string, userId: string) => {
         const response: Response = await fetch(`http://localhost:9000/api/documents/${docId}/permissions`, {
             method: 'PUT',
@@ -217,6 +227,7 @@ export const DocumentProvider: React.FC<{ children: ReactNode }> = ({ children }
         return data.message
     }
 
+    // Clone document and add it to owned documents
     const cloneDocument = async (docId: string) => {
         if (!docId) throw new Error('Document ID is undefined')
 
@@ -239,6 +250,7 @@ export const DocumentProvider: React.FC<{ children: ReactNode }> = ({ children }
         return 'Document cloned successfully'
     }
 
+    // Restore single document from trash
     const restoreDocument = async (docId: string) => {
         const response: Response = await fetch(`http://localhost:9000/api/documents/${docId}/restore`, {
             method: 'POST',
@@ -260,6 +272,7 @@ export const DocumentProvider: React.FC<{ children: ReactNode }> = ({ children }
         return data
     }
 
+    // Restore multiple documents from trash
     const restoreDocuments = async (docs: IDocument[]) => {
         const response: Response = await fetch('http://localhost:9000/api/documents/trash/restore', {
             method: 'POST',
@@ -281,6 +294,7 @@ export const DocumentProvider: React.FC<{ children: ReactNode }> = ({ children }
         return data.message
     }
 
+    // Create view-only link for document
     const createViewLink = async (docId: string) => {
         const response: Response = await fetch(`http://localhost:9000/api/documents/${docId}/permissions/view`, {
             method: 'PUT',
@@ -306,6 +320,7 @@ export const DocumentProvider: React.FC<{ children: ReactNode }> = ({ children }
         return
     }
 
+    // Add lock to document (prevent others from editing)
     const addDocLock = async (docId: string) => {
         const response: Response = await fetch(`http://localhost:9000/api/documents/${docId}/lock`, {
             method: 'PUT',
@@ -320,6 +335,7 @@ export const DocumentProvider: React.FC<{ children: ReactNode }> = ({ children }
         }
     }
 
+    // Remove document lock
     const deleteDocLock = async (docId: string) => {
         const response: Response = await fetch(`http://localhost:9000/api/documents/${docId}/lock`, {
             method: 'DELETE',
@@ -334,6 +350,7 @@ export const DocumentProvider: React.FC<{ children: ReactNode }> = ({ children }
         }
     }
 
+    // Upload image document
     const uploadImage = async (formData: FormData) => {
         const response: Response = await fetch('http://localhost:9000/api/images/upload', {
             method: 'POST',
@@ -348,10 +365,12 @@ export const DocumentProvider: React.FC<{ children: ReactNode }> = ({ children }
             throw new Error(data.error || 'Error uploading image')
         }
 
+        // Refresh owned documents after upload
         fetchOwnedDocuments()
         return data.message
     }
 
+    // Provide document data and functions to children components
     return (
         <DocumentContext.Provider value={{
             ownedDocuments,

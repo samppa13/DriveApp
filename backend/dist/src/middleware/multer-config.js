@@ -7,6 +7,8 @@ const multer_1 = __importDefault(require("multer"));
 const path_1 = __importDefault(require("path"));
 const uuid_1 = require("uuid");
 const fs_1 = __importDefault(require("fs"));
+// Configure Multer to handle image uploads
+// and store them in a user-specific folder with a unique filename
 const storage = multer_1.default.diskStorage({
     destination: async (request, file, callback) => {
         const userDir = path_1.default.join('./public/images', request.user?.id);

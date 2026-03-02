@@ -35,6 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.User = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
+// Define the schema for a User
 const UserSchema = new mongoose_1.Schema({
     username: {
         type: String,
@@ -49,5 +50,6 @@ const UserSchema = new mongoose_1.Schema({
         default: null
     }
 });
+// Define User model
 const User = mongoose_1.default.model('User', UserSchema);
 exports.User = User;

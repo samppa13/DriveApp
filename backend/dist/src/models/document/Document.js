@@ -35,40 +35,21 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DocumentModel = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
+// Base options for schema (discriminator key for inheritance, timestamps)
 const baseOptions = {
     discriminatorKey: 'type',
     timestamps: true
 };
+// Define the Mongoose schema for a Document
 const documentSchema = new mongoose_1.Schema({
-    name: {
-        type: String,
-        required: true
-    },
-    user: {
-        type: mongoose_1.default.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    permissions: {
-        type: [mongoose_1.default.Schema.Types.ObjectId],
-        ref: 'User',
-        default: []
-    },
-    viewToken: {
-        type: String,
-        default: null
-    },
+    name: { type: String, required: true },
+    user: { type: mongoose_1.default.Schema.Types.ObjectId, ref: 'User', required: true },
+    permissions: { type: [mongoose_1.default.Schema.Types.ObjectId], ref: 'User', default: [] },
+    viewToken: { type: String, default: null },
     lock: {
         type: {
-            user: {
-                type: mongoose_1.default.Schema.Types.ObjectId,
-                ref: 'User',
-                required: true
-            },
-            lockTime: {
-                type: Date,
-                required: true
-            }
+            user: { type: mongoose_1.default.Schema.Types.ObjectId, ref: 'User', required: true },
+            lockTime: { type: Date, required: true }
         },
         default: null
     },
@@ -77,10 +58,8 @@ const documentSchema = new mongoose_1.Schema({
         required: true,
         enum: ['TextDocument', 'PresentationDocument', 'SpreadsheetDocument', 'Image']
     },
-    isDeleted: {
-        type: Boolean,
-        default: false
-    }
+    isDeleted: { type: Boolean, default: false }
 }, baseOptions);
+// Create Mongoose model for Document
 const DocumentModel = mongoose_1.default.model('Document', documentSchema);
 exports.DocumentModel = DocumentModel;

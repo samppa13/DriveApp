@@ -9,6 +9,7 @@ const SharedPresentationDocumentPage = () => {
     const navigate = useNavigate()
     const { viewToken } = useParams()
 
+    // Fetch shared presentation document using viewToken when component mounts or token changes
     useEffect(() => {
         if (!viewToken) {
             return
@@ -32,13 +33,17 @@ const SharedPresentationDocumentPage = () => {
         fetchDoc()
     }, [viewToken])
 
+    // Render error message if fetching failed
     if (error) {
         return <p style={{ color: 'red' }}>{error}</p>
     }
+
+    // Render loading message while document is being fetched
     if (!document) {
         return <p>Loading...</p>
     }
 
+    // Render shared presentation document
     return (
         <div>
             <button onClick={() => navigate('/')}>

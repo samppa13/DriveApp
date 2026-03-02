@@ -13,6 +13,7 @@ interface AuthRequest extends Request {
     user?: JwtPayload
 }
 
+// Register a new user
 router.post('/register', async (request: Request, response: Response) => {
     try {
         const { username, password } = request.body
@@ -41,6 +42,7 @@ router.post('/register', async (request: Request, response: Response) => {
     }
 })
 
+// Login a user and return a JWT token
 router.post('/login', async (request: Request, response: Response) => {
     try {
         const { username, password } = request.body
@@ -66,6 +68,7 @@ router.post('/login', async (request: Request, response: Response) => {
     }
 })
 
+// Get all users (without passwords)
 router.get('/', verifyToken, async (request: Request, response: Response) => {
     try {
         const users: IUser[] = await User.find().select('-password')
@@ -75,6 +78,7 @@ router.get('/', verifyToken, async (request: Request, response: Response) => {
     }
 })
 
+// Get logged-in user's profile image file
 router.get('/profile/image/file', verifyToken, async (request: AuthRequest, response: Response) => {
     try {
         const user: IUser | null = await User.findById(request.user?.id)
@@ -106,8 +110,7 @@ router.get('/profile/image/file', verifyToken, async (request: AuthRequest, resp
     }
 })
 
-
-
+// Upload a new profile image for logged-in user
 router.post('/profile/image/upload', verifyToken, upload.single('image'), async (request: AuthRequest, response: Response) => {
     try {
         if (!request.file) {
@@ -137,6 +140,7 @@ router.post('/profile/image/upload', verifyToken, upload.single('image'), async 
     }
 })
 
+// Delete logged-in user's profile image
 router.delete('/profile/image', verifyToken, async (request: AuthRequest, response: Response) => {
     try {
         const user: IUser | null = await User.findById(request.user?.id)
@@ -164,6 +168,7 @@ router.delete('/profile/image', verifyToken, async (request: AuthRequest, respon
     }
 })
 
+// Get logged-in user's profile information
 router.get('/profile', verifyToken, async (request: AuthRequest, response: Response) => {
     try {
         const user = await User.findById(request.user?.id).select('-password')
@@ -179,6 +184,7 @@ router.get('/profile', verifyToken, async (request: AuthRequest, response: Respo
     }
 })
 
+// Update logged-in user's profile information
 router.put('/profile', verifyToken, async (request: AuthRequest, response: Response) => {
     try {
         const { username } = request.body

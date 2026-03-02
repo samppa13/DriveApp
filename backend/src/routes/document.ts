@@ -16,6 +16,8 @@ interface AuthRequest extends Request {
 
 const LOCK_TIMEOUT = 2 * 60 * 1000
 
+
+// Get all documents owned by the logged-in user
 router.get('/', verifyToken, async (request: AuthRequest, response: Response) => {
     try {
         const ownedDocs: IDocument[] = await DocumentModel.find({
@@ -29,6 +31,8 @@ router.get('/', verifyToken, async (request: AuthRequest, response: Response) =>
     }
 })
 
+
+// Get all documents shared by the logged-in user
 router.get('/shared', verifyToken, async (request: AuthRequest, response: Response) => {
     try {
         const sharedDocs: IDocument[] = await DocumentModel.find({
@@ -42,6 +46,7 @@ router.get('/shared', verifyToken, async (request: AuthRequest, response: Respon
     }
 })
 
+// Get all documents in the user's trash
 router.get('/trash', verifyToken, async (request: AuthRequest, response: Response) => {
     try {
         const documents: IDocument[] = await DocumentModel.find({
@@ -55,6 +60,7 @@ router.get('/trash', verifyToken, async (request: AuthRequest, response: Respons
     }
 })
 
+// Restore all documents from trash for the logged-in user
 router.post('/trash/restore', verifyToken, async (request: AuthRequest, response: Response) => {
     try {
         await DocumentModel.updateMany(
@@ -71,6 +77,8 @@ router.post('/trash/restore', verifyToken, async (request: AuthRequest, response
     }
 })
 
+
+// Permanently delete all trashed documents and images
 router.delete('/trash/empty', verifyToken, async (request: AuthRequest, response: Response) => {
     try {
         const images: IImage[] = await ImageModel.find({
@@ -100,6 +108,7 @@ router.delete('/trash/empty', verifyToken, async (request: AuthRequest, response
     }
 })
 
+// Move a document to trash
 router.delete('/:id', verifyToken, async (request: AuthRequest, response: Response) => {
     try {
         const updatedDocument: IDocument | null = await DocumentModel.findOneAndUpdate(
@@ -122,6 +131,7 @@ router.delete('/:id', verifyToken, async (request: AuthRequest, response: Respon
     }
 })
 
+// Permanently delete a single trashed document
 router.delete('/:id/permanent', verifyToken, async (request: AuthRequest, response: Response) => {
     try {
         const document: IDocument | null = await DocumentModel.findOne({
@@ -154,6 +164,7 @@ router.delete('/:id/permanent', verifyToken, async (request: AuthRequest, respon
     }
 })
 
+// Restore a single document from trash
 router.post('/:id/restore', verifyToken, async (request: AuthRequest, response: Response) => {
     try {
         const updatedDocument: IDocument | null = await DocumentModel.findOneAndUpdate(
@@ -176,6 +187,8 @@ router.post('/:id/restore', verifyToken, async (request: AuthRequest, response: 
     }
 })
 
+
+// Grant edit permission to another user
 router.put('/:id/permissions', verifyToken, async (request: AuthRequest, response: Response) => {
     try {
         if (!request.body.userId) {
@@ -215,6 +228,8 @@ router.put('/:id/permissions', verifyToken, async (request: AuthRequest, respons
     }
 })
 
+
+// Create a shareable view link for a document
 router.put('/:id/permissions/view', verifyToken, async (request: AuthRequest, response: Response) => {
     try {
         const updatedDocument: IDocument | null = await DocumentModel.findOne({
@@ -241,6 +256,9 @@ router.put('/:id/permissions/view', verifyToken, async (request: AuthRequest, re
     }
 })
 
+
+
+// Lock a document for editing
 router.put('/:id/lock', verifyToken, async (request: AuthRequest, response: Response) => {
     try {
         const document: IDocument | null = await DocumentModel.findOne({
@@ -275,6 +293,7 @@ router.put('/:id/lock', verifyToken, async (request: AuthRequest, response: Resp
     }
 })
 
+// Release the lock on a document
 router.delete('/:id/lock', verifyToken, async (request: AuthRequest, response: Response) => {
     try {
         const document: IDocument | null = await DocumentModel.findOne({
@@ -306,6 +325,9 @@ router.delete('/:id/lock', verifyToken, async (request: AuthRequest, response: R
     }
 })
 
+
+
+// Clone a document
 router.post('/:id/clone', verifyToken, async (request: AuthRequest, response: Response) => {
     try {
         const originalDoc = await DocumentModel.findById(request.params.id)

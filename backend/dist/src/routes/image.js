@@ -10,6 +10,7 @@ const Image_1 = require("../models/document/Image");
 const multer_config_1 = __importDefault(require("../middleware/multer-config"));
 const path_1 = __importDefault(require("path"));
 const router = (0, express_1.Router)();
+// Get a single image metadata by ID
 router.get('/:id', auth_1.verifyToken, async (request, response) => {
     try {
         const image = await Image_1.ImageModel.findOne({
@@ -30,6 +31,7 @@ router.get('/:id', auth_1.verifyToken, async (request, response) => {
         response.status(500).json({ error: 'Error fetching image' });
     }
 });
+// Download the actual image file by ID
 router.get('/:id/file', auth_1.verifyToken, async (request, response) => {
     try {
         const image = await Image_1.ImageModel.findOne({
@@ -60,6 +62,7 @@ router.get('/:id/file', auth_1.verifyToken, async (request, response) => {
         response.status(500).json({ error: 'Error feching image' });
     }
 });
+// Upload a new image file
 router.post('/upload', auth_1.verifyToken, multer_config_1.default.single('image'), async (request, response) => {
     try {
         if (!request.file) {

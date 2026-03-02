@@ -9,11 +9,13 @@ const Header = () => {
     const navigate = useNavigate()
     const auth = useContext(AuthContext)
 
+    // Logout user and redirect to home page
     const handleLogout = () => {
         auth.logout()
         navigate('/')
     }
 
+    // Render navigation bar
     return (
         <div className='header'>
             <Navbar bg='dark' data-bs-theme='dark'>
@@ -24,6 +26,7 @@ const Header = () => {
                             {auth?.user
                                 ? (
                                     <>
+                                        {/* Render links for logged-in user */}
                                         <Nav.Link onClick={handleLogout}>
                                             Logout
                                         </Nav.Link>
@@ -43,6 +46,7 @@ const Header = () => {
                                 )
                                 : (
                                     <>
+                                        {/* Render links for guest user */}
                                         <Nav.Link href='/login'>
                                             Login
                                         </Nav.Link>

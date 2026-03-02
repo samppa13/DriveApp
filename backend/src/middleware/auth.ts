@@ -5,6 +5,7 @@ interface AuthRequest extends Request {
     user?: JwtPayload
 }
 
+// Middleware to verify JWT token
 export const verifyToken = (request: AuthRequest, response: Response, next: NextFunction) => {
     const token = request.header('Authorization')?.split(' ')[1]
     if (!token) {
