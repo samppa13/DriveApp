@@ -212,6 +212,15 @@ const MyDrive = () => {
         }
     }
 
+    const handleCloneDoc = async (docId: string) => {
+        try {
+            const mess = await docs.cloneDocument(docId)
+            setMessage(mess)
+        } catch (error: any) {
+            setErrorMessage(error.message)
+        }
+    }
+
     const sortedDocuments: IDocument[] = [...docs.ownedDocuments].sort((doc1, doc2) => {
         if (sortTerm === 'created-desc') {
             const time1 = doc1.createdAt ? new Date(doc1.createdAt).getTime() : 0
@@ -378,6 +387,7 @@ const MyDrive = () => {
                                         <th></th>
                                         <th></th>
                                         <th>View link</th>
+                                        <th></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -442,6 +452,14 @@ const MyDrive = () => {
                                                         && <p>
                                                             http://localhost:5173/{document.type.toLowerCase()}s/view/{document.viewToken}
                                                         </p>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    {
+                                                        document.type !== 'Image'
+                                                        && <button onClick={() => handleCloneDoc(document._id)}>
+                                                            Clone
+                                                        </button>
                                                     }
                                                 </td>
                                             </tr>

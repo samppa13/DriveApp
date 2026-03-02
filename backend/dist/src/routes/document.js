@@ -273,4 +273,25 @@ router.delete('/:id/lock', auth_1.verifyToken, async (request, response) => {
         response.status(500).json({ error: 'Error releasing document lock' });
     }
 });
+router.post('/:id/clone', auth_1.verifyToken, async (request, response) => {
+    try {
+        const originalDoc = await Document_1.DocumentModel.findById(request.params.id);
+        if (!originalDoc) {
+            response.status(404).json({ error: 'Document not found' });
+            return;
+        }
+        const newDoc = new Document_1.DocumentModel({
+            ...originalDoc.toObject(),
+            _id: undefined,
+            name: originalDoc.name + ' (Copy)',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        });
+        await newDoc.save();
+        response.json(newDoc);
+    }
+    catch (err) {
+        response.status(500).json({ error: 'Error cloning document' });
+    }
+});
 exports.default = router;

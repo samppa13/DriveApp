@@ -14,6 +14,7 @@ interface DocumentContextSettings {
     deleteDocument: (id: string) => Promise<string>
     shareDocument: (docId: string, userId: string) => Promise<string>
     restoreDocument: (docId: string) => Promise<IDocument>
+    cloneDocument: (docId: string) => Promise<string>
     restoreDocuments: (docs: IDocument[]) => Promise<string>
     createViewLink: (docId: string) => Promise<void>
     addDocLock: (docId: string) => Promise<void>
@@ -216,6 +217,28 @@ export const DocumentProvider: React.FC<{ children: ReactNode }> = ({ children }
         return data.message
     }
 
+    const cloneDocument = async (docId: string) => {
+        if (!docId) throw new Error('Document ID is undefined')
+
+        const response = await fetch(`http://localhost:9000/api/documents/${docId}/clone`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${auth.token}`,
+                'Content-Type': 'application/json',
+            },
+        })
+
+        const data = await response.json()
+        if (!response.ok) {
+            throw new Error(data.error || 'Error cloning document')
+        }
+
+        setOwnedDocuments((prevDocs) =>
+            prevDocs ? [...prevDocs, data] : [data]
+        )
+        return 'Document cloned successfully'
+    }
+
     const restoreDocument = async (docId: string) => {
         const response: Response = await fetch(`http://localhost:9000/api/documents/${docId}/restore`, {
             method: 'POST',
@@ -342,6 +365,7 @@ export const DocumentProvider: React.FC<{ children: ReactNode }> = ({ children }
             deleteDocument,
             shareDocument,
             restoreDocument,
+            cloneDocument,
             restoreDocuments,
             createViewLink,
             addDocLock,
